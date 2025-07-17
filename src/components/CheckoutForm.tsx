@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,10 +18,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "./ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, LogIn } from "lucide-react";
 import { createRazorpayOrder, verifyPayment } from "@/lib/razorpay";
 import { useState, useEffect } from "react";
 import { Skeleton } from "./ui/skeleton";
+import { useAuth } from "@/store/auth";
+import Link from "next/link";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -34,24 +37,50 @@ export function CheckoutForm() {
   const router = useRouter();
   const { clearCart, getTotalPrice } = useCart();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
-
+  
   const totalPrice = getTotalPrice();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      email: "",
+      email: user || "",
       address: "",
       city: "",
       zip: "",
     },
   });
+
+   useEffect(() => {
+    if (user) {
+      form.setValue('email', user);
+    }
+  }, [user, form]);
+
+  if (isClient && !user) {
+     return (
+      <Card className="text-center">
+        <CardHeader>
+          <CardTitle>Please Log In</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-4">You need to be logged in to proceed to checkout.</p>
+          <Button asChild>
+            <Link href="/login">
+              <LogIn className="mr-2 h-4 w-4" />
+              Login
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const amountInPaisa = Math.round(totalPrice * 100);
