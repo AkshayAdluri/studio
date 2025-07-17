@@ -11,6 +11,9 @@ import type { Category } from '@/lib/products';
 import { Card } from './ui/card';
 import { Skeleton } from './ui/skeleton';
 
+const categories: Category[] = getCategories();
+const categoryNames = categories.map(c => c.name);
+
 export function SearchBar() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,9 +21,6 @@ export function SearchBar() {
   const [isLoading, setIsLoading] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
-  
-  const categories: Category[] = getCategories();
-  const categoryNames = categories.map(c => c.name);
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -67,7 +67,7 @@ export function SearchBar() {
 
     const debounceTimeout = setTimeout(fetchSuggestions, 300);
     return () => clearTimeout(debounceTimeout);
-  }, [searchTerm, categoryNames]);
+  }, [searchTerm]);
 
   return (
     <div className="relative w-full" ref={searchContainerRef}>
