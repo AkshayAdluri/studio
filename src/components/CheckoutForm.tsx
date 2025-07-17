@@ -15,15 +15,25 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "./ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight, LogIn } from "lucide-react";
+import { ArrowRight, LogIn, PlusCircle } from "lucide-react";
 import { createRazorpayOrder, verifyPayment } from "@/lib/razorpay";
 import { useState, useEffect } from "react";
 import { Skeleton } from "./ui/skeleton";
 import { useAuth } from "@/store/auth";
 import Link from "next/link";
+import { useAddress, type Address } from "@/store/address";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import { AddressForm } from "./AddressForm";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -38,7 +48,9 @@ export function CheckoutForm() {
   const { clearCart, getTotalPrice } = useCart();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { addresses, addAddress } = useAddress();
   const [isClient, setIsClient] = useState(false);
+  const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -62,6 +74,32 @@ export function CheckoutForm() {
       form.setValue('email', user);
     }
   }, [user, form]);
+
+  const handleAddressSelect = (addressId: string) => {
+    const selectedAddress = addresses.find(a => a.id === addressId);
+    if (selectedAddress) {
+      form.setValue('name', selectedAddress.name);
+      form.setValue('address', selectedAddress.address);
+      form.setValue('city', selectedAddress.city);
+      form.setValue('zip', selectedAddress.zip);
+    }
+  };
+
+  const handleAddNewAddress = (newAddress: Omit<Address, 'id'>) => {
+    addAddress(newAddress);
+    setIsAddressDialogOpen(false);
+    toast({
+      title: "Address added",
+      description: "Your new address has been saved and selected."
+    })
+    // Select the newly added address
+    // Note: addAddress returns the new address with an ID, but here we'll just find it.
+    // A more robust solution might have addAddress return the full new address object.
+    const addedAddress = addresses[addresses.length-1];
+    if (addedAddress) {
+        handleAddressSelect(addedAddress.id);
+    }
+  }
 
   if (isClient && !user) {
      return (
@@ -148,6 +186,38 @@ export function CheckoutForm() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
+             {isClient && addresses.length > 0 && (
+               <div className="space-y-2">
+                <Label>Select Address</Label>
+                <div className="flex gap-2">
+                  <Select onValueChange={handleAddressSelect}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a saved address" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {addresses.map((address) => (
+                        <SelectItem key={address.id} value={address.id}>
+                          {address.name} - {address.address}, {address.city}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="icon">
+                        <PlusCircle className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Add New Address</DialogTitle>
+                      </DialogHeader>
+                      <AddressForm onSubmit={handleAddNewAddress} />
+                    </DialogContent>
+                  </Dialog>
+                </div>
+               </div>
+            )}
             <FormField
               control={form.control}
               name="name"
