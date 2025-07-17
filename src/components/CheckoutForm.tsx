@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "./ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowRight } from "lucide-react";
+import { createRazorpayOrder, verifyPayment } from "@/lib/razorpay";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -44,17 +45,66 @@ export function CheckoutForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("Order submitted:", values);
-    
-    // Simulate order processing
-    toast({
-      title: "Order Placed!",
-      description: "Thank you for your purchase.",
-    });
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    const amountInPaisa = Math.round(totalPrice * 100);
 
-    clearCart();
-    router.push('/confirmation');
+    try {
+      const order = await createRazorpayOrder({ amount: amountInPaisa });
+      if (!order) {
+        throw new Error('Order creation failed');
+      }
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: "INR",
+        name: "QuickBuy",
+        description: "Test Transaction",
+        order_id: order.id,
+        handler: async function (response: any) {
+          const data = {
+            orderId: response.razorpay_order_id,
+            paymentId: response.razorpay_payment_id,
+            signature: response.razorpay_signature,
+          };
+
+          const isVerified = await verifyPayment(data);
+          
+          if(isVerified) {
+            toast({
+              title: "Payment Successful!",
+              description: "Thank you for your purchase.",
+            });
+            clearCart();
+            router.push('/confirmation');
+          } else {
+             toast({
+              title: "Payment Verification Failed",
+              description: "Please try again.",
+              variant: "destructive"
+            });
+          }
+        },
+        prefill: {
+          name: values.name,
+          email: values.email,
+        },
+        theme: {
+          color: "#8B5CF6"
+        }
+      };
+      
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+
+    } catch (error) {
+      console.error("Error processing order:", error);
+      toast({
+        title: "Error",
+        description: "Something went wrong while processing your order. Please try again.",
+        variant: "destructive"
+      });
+    }
   }
 
   return (
