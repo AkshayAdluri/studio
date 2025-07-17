@@ -9,12 +9,14 @@ import { Badge } from './ui/badge';
 import { useCart } from '@/store/cart';
 
 export function Header() {
-  const totalItems = useCart((state) => state.getTotalItems());
+  const { getTotalItems } = useCart();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const totalItems = getTotalItems();
 
   return (
     <header className="bg-background/80 backdrop-blur-md sticky top-0 z-40 border-b">
@@ -33,7 +35,10 @@ export function Header() {
             <Link href="/cart" className="relative">
               <ShoppingCart className="h-5 w-5" />
               {isClient && totalItems > 0 && (
-                <Badge className="absolute top-0 right-0 h-5 w-5 flex items-center justify-center p-0 text-xs transform translate-x-1/2 -translate-y-1/2 bg-accent text-accent-foreground rounded-full">
+                <Badge 
+                  variant="destructive"
+                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full"
+                >
                   {totalItems}
                 </Badge>
               )}

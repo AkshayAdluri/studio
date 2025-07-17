@@ -19,6 +19,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "./ui/card"
 import { useToast } from "@/hooks/use-toast";
 import { ArrowRight } from "lucide-react";
 import { createRazorpayOrder, verifyPayment } from "@/lib/razorpay";
+import { useState, useEffect } from "react";
+import { Skeleton } from "./ui/skeleton";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -32,6 +34,12 @@ export function CheckoutForm() {
   const router = useRouter();
   const { clearCart, getTotalPrice } = useCart();
   const { toast } = useToast();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const totalPrice = getTotalPrice();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -182,10 +190,16 @@ export function CheckoutForm() {
           <CardFooter className="flex-col items-stretch gap-4">
              <div className="flex justify-between font-bold text-lg border-t pt-4">
                 <span>Order Total</span>
-                <span>${totalPrice.toFixed(2)}</span>
+                {isClient ? 
+                  <span>${totalPrice.toFixed(2)}</span> :
+                  <Skeleton className="h-6 w-24" />
+                }
               </div>
-            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting || totalPrice <= 0}>
-              {form.formState.isSubmitting ? 'Processing...' : `Pay $${totalPrice.toFixed(2)}`}
+            <Button type="submit" className="w-full" disabled={!isClient || form.formState.isSubmitting || totalPrice <= 0}>
+              {isClient ? 
+                (form.formState.isSubmitting ? 'Processing...' : `Pay $${totalPrice.toFixed(2)}`) :
+                'Loading...'
+              }
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </CardFooter>
