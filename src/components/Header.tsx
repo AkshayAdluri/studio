@@ -30,10 +30,10 @@ export function Header() {
         </div>
         <div className="flex items-center">
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/cart">
+            <Link href="/cart" className="relative">
               <ShoppingCart className="h-5 w-5" />
               {isClient && totalItems > 0 && (
-                <Badge className="absolute top-1 right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-accent text-accent-foreground">
+                <Badge className="absolute top-0 right-0 h-5 w-5 flex items-center justify-center p-0 text-xs transform translate-x-1/2 -translate-y-1/2 bg-accent text-accent-foreground rounded-full">
                   {totalItems}
                 </Badge>
               )}
