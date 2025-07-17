@@ -3,6 +3,9 @@
 import Razorpay from 'razorpay';
 import shortid from 'shortid';
 import crypto from 'crypto';
+import { config } from 'dotenv';
+
+config(); // Load environment variables from .env file
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID!,
