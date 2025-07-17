@@ -86,7 +86,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           </Button>
         </CardHeader>
         <CardContent className="p-4 flex-grow flex flex-col">
-          <CardTitle className="text-lg font-medium font-headline mb-1 leading-tight">{product.name}</CardTitle>
+          <CardTitle className="text-lg font-medium font-headline mb-1 leading-tight line-clamp-1">{product.name}</CardTitle>
           <p className="text-muted-foreground text-sm flex-grow line-clamp-1">{product.description}</p>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between items-center">
