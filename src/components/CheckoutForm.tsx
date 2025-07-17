@@ -71,10 +71,6 @@ export function CheckoutForm() {
           const isVerified = await verifyPayment(data);
           
           if(isVerified) {
-            toast({
-              title: "Payment Successful!",
-              description: "Thank you for your purchase.",
-            });
             clearCart();
             router.push('/confirmation');
           } else {
@@ -90,7 +86,7 @@ export function CheckoutForm() {
           email: values.email,
         },
         theme: {
-          color: "#8B5CF6"
+          color: "#A020F0"
         }
       };
       
@@ -188,8 +184,8 @@ export function CheckoutForm() {
                 <span>Order Total</span>
                 <span>${totalPrice.toFixed(2)}</span>
               </div>
-            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? 'Processing...' : 'Place Order'}
+            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting || totalPrice <= 0}>
+              {form.formState.isSubmitting ? 'Processing...' : `Pay $${totalPrice.toFixed(2)}`}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </CardFooter>
@@ -197,4 +193,3 @@ export function CheckoutForm() {
       </Form>
     </Card>
   );
-}
