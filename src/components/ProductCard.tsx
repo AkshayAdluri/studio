@@ -87,7 +87,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         </CardHeader>
         <CardContent className="p-4 flex-grow flex flex-col">
           <CardTitle className="text-lg font-medium font-headline mb-1 leading-tight">{product.name}</CardTitle>
-          <p className="text-muted-foreground text-sm flex-grow">{product.description}</p>
+          <p className="text-muted-foreground text-sm flex-grow line-clamp-1">{product.description}</p>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between items-center">
           <p className="text-xl font-semibold text-primary">${product.price.toFixed(2)}</p>
