@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -6,6 +7,7 @@ import { Search } from 'lucide-react';
 import { Input } from './ui/input';
 import { generateSearchSuggestions } from '@/ai/flows/generate-search-suggestions';
 import { getCategories } from '@/lib/products';
+import type { Category } from '@/lib/products';
 import { Card } from './ui/card';
 import { Skeleton } from './ui/skeleton';
 
@@ -17,7 +19,8 @@ export function SearchBar() {
   const [isFocused, setIsFocused] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   
-  const categories = getCategories();
+  const categories: Category[] = getCategories();
+  const categoryNames = categories.map(c => c.name);
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -52,7 +55,7 @@ export function SearchBar() {
     const fetchSuggestions = async () => {
       setIsLoading(true);
       try {
-        const result = await generateSearchSuggestions({ searchTerm, productCategories: categories });
+        const result = await generateSearchSuggestions({ searchTerm, productCategories: categoryNames });
         setSuggestions(result.suggestions);
       } catch (error) {
         console.error('Error fetching search suggestions:', error);
@@ -64,7 +67,7 @@ export function SearchBar() {
 
     const debounceTimeout = setTimeout(fetchSuggestions, 300);
     return () => clearTimeout(debounceTimeout);
-  }, [searchTerm]);
+  }, [searchTerm, categoryNames]);
 
   return (
     <div className="relative w-full" ref={searchContainerRef}>
