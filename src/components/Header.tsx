@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useWishlist } from '@/store/wishlist';
+import { ThemeToggle } from './ThemeToggle';
 
 export function Header() {
   const { getTotalItems: getTotalCartItems } = useCart();
@@ -45,6 +46,7 @@ export function Header() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+           <ThemeToggle />
            <Button variant="ghost" size="icon" asChild>
             <Link href="/wishlist" className="relative">
               <Heart className="h-5 w-5" />
