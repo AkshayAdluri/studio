@@ -64,7 +64,7 @@ export function SearchBar() {
 
     const debounceTimeout = setTimeout(fetchSuggestions, 300);
     return () => clearTimeout(debounceTimeout);
-  }, [searchTerm, categories]);
+  }, [searchTerm]);
 
   return (
     <div className="relative w-full" ref={searchContainerRef}>
