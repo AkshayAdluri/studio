@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -10,30 +11,22 @@ interface ProductGridProps {
 }
 
 export default function ProductGrid({ initialProducts }: ProductGridProps) {
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
   const searchParams = useSearchParams();
 
+  // This useEffect ensures the grid updates when the initialProducts prop changes
+  // due to filtering on the parent page component.
   useEffect(() => {
-    const searchTerm = searchParams.get('q')?.toLowerCase() || '';
-    if (searchTerm) {
-      const filtered = initialProducts.filter(product =>
-        product.name.toLowerCase().includes(searchTerm) ||
-        product.category.toLowerCase().includes(searchTerm) ||
-        product.description.toLowerCase().includes(searchTerm)
-      );
-      setFilteredProducts(filtered);
-    } else {
-      setFilteredProducts(initialProducts);
-    }
-  }, [searchParams, initialProducts]);
+    setProducts(initialProducts);
+  }, [initialProducts, searchParams]);
 
-  if (filteredProducts.length === 0) {
-    return <p className="text-center text-muted-foreground mt-8">No products found.</p>
+  if (products.length === 0) {
+    return <p className="text-center text-muted-foreground mt-8">No products found for your selection.</p>
   }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      {filteredProducts.map(product => (
+      {products.map(product => (
         <ProductCard key={product.id} product={product} />
       ))}
     </div>

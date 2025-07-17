@@ -1,12 +1,19 @@
+
 export interface Product {
   id: number;
   name: string;
   price: number;
   imageUrl: string;
   category: string;
+  subcategory: string;
   stock: number;
   description: string;
   dataAiHint?: string;
+}
+
+export interface Category {
+  name: string;
+  subcategories: string[];
 }
 
 const products: Product[] = [
@@ -15,7 +22,8 @@ const products: Product[] = [
     name: 'AURA Wireless Headphones',
     price: 249.99,
     imageUrl: 'https://placehold.co/600x600',
-    category: 'Electronics',
+    category: 'electronics',
+    subcategory: 'audio',
     stock: 15,
     description: 'Experience immersive sound with these noise-cancelling wireless headphones. 40-hour battery life and all-day comfort.',
     dataAiHint: 'headphones music'
@@ -25,7 +33,8 @@ const products: Product[] = [
     name: 'FLUX Smartwatch',
     price: 399.00,
     imageUrl: 'https://placehold.co/600x600',
-    category: 'Electronics',
+    category: 'electronics',
+    subcategory: 'wearables',
     stock: 22,
     description: 'Track your fitness, stay connected, and tell time in style. Waterproof up to 50m with a vibrant OLED display.',
     dataAiHint: 'smartwatch tech'
@@ -35,7 +44,8 @@ const products: Product[] = [
     name: 'NOMAD Backpack',
     price: 120.50,
     imageUrl: 'https://placehold.co/600x600',
-    category: 'Accessories',
+    category: 'accessories',
+    subcategory: 'bags',
     stock: 30,
     description: 'The perfect companion for your daily commute or weekend adventure. Durable, water-resistant materials and smart compartments.',
     dataAiHint: 'backpack travel'
@@ -45,7 +55,8 @@ const products: Product[] = [
     name: 'SOLSTICE Sunglasses',
     price: 85.00,
     imageUrl: 'https://placehold.co/600x600',
-    category: 'Fashion',
+    category: 'fashion',
+    subcategory: 'eyewear',
     stock: 50,
     description: 'Protect your eyes with 100% UV protection and polarized lenses. Lightweight frame with a classic design.',
     dataAiHint: 'sunglasses fashion'
@@ -55,7 +66,8 @@ const products: Product[] = [
     name: 'EMBER Smart Mug',
     price: 129.95,
     imageUrl: 'https://placehold.co/600x600',
-    category: 'Home Goods',
+    category: 'home goods',
+    subcategory: 'kitchen',
     stock: 18,
     description: 'Keep your coffee at the perfect temperature from the first sip to the last. Control with your smartphone.',
     dataAiHint: 'mug coffee'
@@ -65,7 +77,8 @@ const products: Product[] = [
     name: 'TERRA Potted Plant',
     price: 45.00,
     imageUrl: 'https://placehold.co/600x600',
-    category: 'Home Goods',
+    category: 'home goods',
+    subcategory: 'decor',
     stock: 40,
     description: 'Brighten up your space with this easy-care snake plant. Comes in a stylish ceramic pot.',
     dataAiHint: 'plant decor'
@@ -75,7 +88,8 @@ const products: Product[] = [
     name: 'NEBULA Portable Projector',
     price: 499.99,
     imageUrl: 'https://placehold.co/600x600',
-    category: 'Electronics',
+    category: 'electronics',
+    subcategory: 'home cinema',
     stock: 12,
     description: 'Transform any wall into a cinema screen. 1080p resolution, built-in speakers, and a 4-hour battery.',
     dataAiHint: 'projector cinema'
@@ -85,7 +99,8 @@ const products: Product[] = [
     name: 'EQUINOX Yoga Mat',
     price: 79.99,
     imageUrl: 'https://placehold.co/600x600',
-    category: 'Sports',
+    category: 'sports',
+    subcategory: 'fitness',
     stock: 60,
     description: 'High-density, non-slip yoga mat for ultimate comfort and stability during your practice. Eco-friendly materials.',
     dataAiHint: 'yoga fitness'
@@ -100,7 +115,18 @@ export const getProductById = (id: number): Product | undefined => {
   return products.find(p => p.id === id);
 };
 
-export const getCategories = (): string[] => {
-  const categories = products.map(p => p.category);
-  return [...new Set(categories)];
+export const getCategories = (): Category[] => {
+  const categoriesMap: { [key: string]: Set<string> } = {};
+
+  products.forEach(product => {
+    if (!categoriesMap[product.category]) {
+      categoriesMap[product.category] = new Set();
+    }
+    categoriesMap[product.category].add(product.subcategory);
+  });
+
+  return Object.keys(categoriesMap).map(categoryName => ({
+    name: categoryName,
+    subcategories: Array.from(categoriesMap[categoryName]),
+  }));
 }
