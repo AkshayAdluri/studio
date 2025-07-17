@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product } from '@/lib/products';
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 export interface CartItem extends Product {
   quantity: number;
@@ -24,7 +24,6 @@ export const useCart = create<CartState>()(
     (set, get) => ({
       items: [],
       addItem: (product) => {
-        const { toast } = useToast.getState();
         const existingItem = get().items.find((item) => item.id === product.id);
         if (existingItem) {
           get().updateItemQuantity(product.id, existingItem.quantity + 1);
