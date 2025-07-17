@@ -90,10 +90,10 @@ export default function ProductCard({ product }: ProductCardProps) {
           <p className="text-muted-foreground text-sm flex-grow line-clamp-1">{product.description}</p>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between items-center gap-2">
-          <p className="text-lg font-semibold text-primary truncate">${product.price.toFixed(2)}</p>
-          <Button onClick={handleAddToCart} size="sm" className="flex-shrink-0 text-xs">
-            <PlusCircle className="mr-1 h-4 w-4" />
-            Add to Cart
+          <p className="text-lg font-semibold text-primary">${product.price.toFixed(2)}</p>
+          <Button onClick={handleAddToCart} size="icon" className="h-8 w-8 rounded-full flex-shrink-0">
+            <PlusCircle className="h-4 w-4" />
+            <span className="sr-only">Add to Cart</span>
           </Button>
         </CardFooter>
       </Card>
