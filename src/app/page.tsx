@@ -1,29 +1,25 @@
 
-import { getProducts, getCategories } from '@/lib/products';
-import type { Product } from '@/lib/products';
+'use client'
+
+import { useProductStore } from '@/store/products';
+import { getCategoriesFromProducts } from '@/lib/products';
+import type { Product, Category } from '@/store/products';
 import CategoryFilters from '@/components/CategoryFilters';
 import ProductGrid from '@/components/ProductGrid';
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { useSearchParams } from 'next/navigation';
 
 const PRODUCTS_PER_PAGE = 12;
 
-export default function Home({
-  searchParams,
-}: {
-  searchParams?: { 
-    q?: string;
-    category?: string;
-    subcategory?: string;
-    page?: string;
-  };
-}) {
-  const allProducts: Product[] = getProducts();
-  const allCategories = getCategories();
+export default function Home() {
+  const searchParams = useSearchParams();
+  const allProducts = useProductStore((state) => state.products);
+  const allCategories = getCategoriesFromProducts(allProducts);
 
-  const searchTerm = searchParams?.q || '';
-  const selectedCategory = searchParams?.category;
-  const selectedSubcategory = searchParams?.subcategory;
-  const currentPage = Number(searchParams?.page) || 1;
+  const searchTerm = searchParams.get('q') || '';
+  const selectedCategory = searchParams.get('category');
+  const selectedSubcategory = searchParams.get('subcategory');
+  const currentPage = Number(searchParams.get('page')) || 1;
 
   const filteredProducts = allProducts.filter(product => {
     const matchesSearch = searchTerm
@@ -54,10 +50,7 @@ export default function Home({
   }
 
   const createPageURL = (pageNumber: number | string) => {
-    const params = new URLSearchParams();
-    if (searchTerm) params.set('q', searchTerm);
-    if (selectedCategory) params.set('category', selectedCategory);
-    if (selectedSubcategory) params.set('subcategory', selectedSubcategory);
+    const params = new URLSearchParams(searchParams);
     params.set('page', pageNumber.toString());
     return `/?${params.toString()}`;
   };

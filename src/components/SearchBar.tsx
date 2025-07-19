@@ -1,26 +1,29 @@
 
+
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
 import { Input } from './ui/input';
 import { generateSearchSuggestions } from '@/ai/flows/generate-search-suggestions';
-import { getCategories } from '@/lib/products';
-import type { Category } from '@/lib/products';
+import { getCategoriesFromProducts } from '@/lib/products';
 import { Card } from './ui/card';
 import { Skeleton } from './ui/skeleton';
-
-const categories: Category[] = getCategories();
-const categoryNames = categories.map(c => c.name);
+import { useProductStore } from '@/store/products';
 
 export function SearchBar() {
   const router = useRouter();
+  const allProducts = useProductStore(state => state.products);
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  const categoryNames = useMemo(() => {
+    return getCategoriesFromProducts(allProducts).map(c => c.name);
+  }, [allProducts]);
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -67,7 +70,7 @@ export function SearchBar() {
 
     const debounceTimeout = setTimeout(fetchSuggestions, 300);
     return () => clearTimeout(debounceTimeout);
-  }, [searchTerm]);
+  }, [searchTerm, categoryNames]);
 
   return (
     <div className="relative w-full" ref={searchContainerRef}>

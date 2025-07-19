@@ -1,9 +1,10 @@
 
+
 'use client';
 
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Button } from './ui/button';
-import type { Category } from '@/lib/products';
+import type { Category } from '@/store/products';
 
 interface CategoryFiltersProps {
   allCategories: Category[];

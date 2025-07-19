@@ -1,22 +1,7 @@
 
-export interface Product {
-  id: number;
-  name: string;
-  price: number;
-  imageUrl: string;
-  category: string;
-  subcategory: string;
-  stock: number;
-  description: string;
-  dataAiHint?: string;
-}
+import type { Product, Category } from '@/store/products';
 
-export interface Category {
-  name: string;
-  subcategories: string[];
-}
-
-const products: Product[] = [
+export const initialProducts: Product[] = [
   {
     id: 1,
     name: 'AURA Wireless Headphones',
@@ -569,15 +554,7 @@ const products: Product[] = [
   },
 ];
 
-export const getProducts = (): Product[] => {
-  return products;
-};
-
-export const getProductById = (id: number): Product | undefined => {
-  return products.find(p => p.id === id);
-};
-
-export const getCategories = (): Category[] => {
+export const getCategoriesFromProducts = (products: Product[]): Category[] => {
   const categoriesMap: { [key: string]: Set<string> } = {};
 
   products.forEach(product => {

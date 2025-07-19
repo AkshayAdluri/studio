@@ -1,14 +1,17 @@
 
 
+'use client'
+
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getProductById } from '@/lib/products';
+import { useProductStore } from '@/store/products';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ProductPageClient from './ProductPageClient';
 import { ChevronRight } from 'lucide-react';
 
 export default function ProductPage({ params }: { params: { id: string } }) {
+  const getProductById = useProductStore(state => state.getProductById);
   const productId = Number(params.id);
   if (isNaN(productId)) {
     notFound();
