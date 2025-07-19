@@ -66,7 +66,7 @@ export default function AdminLayout({
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                  <Link href={item.href} legacyBehavior passHref>
+                  <Link href={item.href}>
                     <SidebarMenuButton
                       asChild
                       isActive={pathname === item.href}
@@ -75,10 +75,10 @@ export default function AdminLayout({
                       }}
                        aria-disabled={item.disabled}
                     >
-                      <a>
+                      <span>
                         <item.icon />
                         <span>{item.label}</span>
-                      </a>
+                      </span>
                     </SidebarMenuButton>
                   </Link>
                 </SidebarMenuItem>
