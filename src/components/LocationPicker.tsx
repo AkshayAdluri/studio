@@ -11,9 +11,10 @@ const containerStyle = {
   borderRadius: 'var(--radius)',
 };
 
+// A more specific, zoomed-in location (e.g., near Union Square, SF)
 const defaultCenter = {
-  lat: 37.7749,
-  lng: -122.4194
+  lat: 37.788,
+  lng: -122.407
 };
 
 interface LocationPickerProps {
@@ -69,13 +70,26 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
     <GoogleMap
       mapContainerStyle={containerStyle}
       center={defaultCenter}
-      zoom={10}
+      zoom={18} // Zoomed in to street level
       onClick={handleMapClick}
+      mapTypeId='satellite' // Set to satellite view
       options={{
         fullscreenControl: false,
         streetViewControl: false,
         mapTypeControl: false,
         zoomControl: true,
+        // Restrict panning and zooming
+        restriction: {
+          latLngBounds: {
+            north: defaultCenter.lat + 0.01,
+            south: defaultCenter.lat - 0.01,
+            east: defaultCenter.lng + 0.01,
+            west: defaultCenter.lng - 0.01,
+          },
+          strictBounds: false,
+        },
+        minZoom: 16,
+        maxZoom: 20,
       }}
     >
       <Marker position={markerPosition} />
