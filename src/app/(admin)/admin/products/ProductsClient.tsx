@@ -39,7 +39,9 @@ export default function ProductsClient() {
               <DialogTitle>Add New Product</DialogTitle>
             </DialogHeader>
             <ScrollArea className="flex-grow pr-6 -mr-6">
-                 <AddProductForm setDialogOpen={setIsAddDialogOpen} />
+                 <div className="pr-1">
+                    <AddProductForm setDialogOpen={setIsAddDialogOpen} />
+                 </div>
             </ScrollArea>
           </DialogContent>
         </Dialog>
