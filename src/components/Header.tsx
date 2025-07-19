@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingCart, Zap, Heart, User, LogIn, LogOut } from 'lucide-react';
+import { ShoppingCart, Zap, Heart, User, LogOut } from 'lucide-react';
 import { SearchBar } from './SearchBar';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useWishlist } from '@/store/wishlist';
 import { ThemeToggle } from './ThemeToggle';
+import { Avatar, AvatarFallback } from './ui/avatar';
 
 export function Header() {
   const { getTotalItems: getTotalCartItems } = useCart();
@@ -80,8 +81,10 @@ export function Header() {
           {isClient && user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <User className="h-5 w-5" />
+                <Button variant="ghost" className="h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback>{user.charAt(0).toUpperCase()}</AvatarFallback>
+                  </Avatar>
                    <span className="sr-only">User Menu</span>
                 </Button>
               </DropdownMenuTrigger>
@@ -102,7 +105,7 @@ export function Header() {
           ) : (
              <Button variant="ghost" size="icon" asChild>
               <Link href="/login">
-                <LogIn className="h-5 w-5" />
+                <User className="h-5 w-5" />
                 <span className="sr-only">Login</span>
               </Link>
             </Button>
