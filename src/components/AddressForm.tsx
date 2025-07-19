@@ -15,14 +15,21 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import type { Address } from "@/store/address";
-import { Loader2 } from "lucide-react";
+import { Loader2, MapPin } from "lucide-react";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import LocationPicker from "./LocationPicker";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   address: z.string().min(10, { message: "Address must be at least 10 characters." }),
   city: z.string().min(2, { message: "City must be at least 2 characters." }),
   zip: z.string().regex(/^\d{5}$/, { message: "Please enter a valid 5-digit zip code." }),
+  lat: z.number().optional(),
+  lng: z.number().optional(),
 });
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface AddressFormProps {
   onSubmit: (data: Omit<Address, 'id'>) => boolean | void;
@@ -31,28 +38,55 @@ interface AddressFormProps {
 }
 
 export function AddressForm({ onSubmit, initialData, isSaving = false }: AddressFormProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
+  const [isMapOpen, setIsMapOpen] = useState(false);
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData || {
       name: "",
       address: "",
       city: "",
       zip: "",
+      lat: undefined,
+      lng: undefined,
     },
   });
 
-  function handleFormSubmit(values: z.infer<typeof formSchema>) {
+  function handleFormSubmit(values: FormValues) {
     const result = onSubmit(values);
-    // If the onSubmit function returns true or undefined, reset the form.
-    // This allows the consumer to control whether the form resets on success.
     if (result !== false) {
       form.reset();
     }
   }
 
+  const handleLocationSelect = (location: { address: string, city: string, zip: string, lat: number, lng: number }) => {
+    form.setValue("address", location.address, { shouldValidate: true });
+    form.setValue("city", location.city, { shouldValidate: true });
+    form.setValue("zip", location.zip, { shouldValidate: true });
+    form.setValue("lat", location.lat);
+    form.setValue("lng", location.lng);
+    setIsMapOpen(false);
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
+        <Dialog open={isMapOpen} onOpenChange={setIsMapOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="w-full">
+              <MapPin className="mr-2 h-4 w-4" />
+              Pick on Map
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>Select your location</DialogTitle>
+            </DialogHeader>
+            <div className="h-[500px]">
+              <LocationPicker onLocationSelect={handleLocationSelect} />
+            </div>
+          </DialogContent>
+        </Dialog>
+
         <FormField
           control={form.control}
           name="name"

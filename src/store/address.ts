@@ -11,6 +11,8 @@ export interface Address {
   address: string;
   city: string;
   zip: string;
+  lat?: number;
+  lng?: number;
 }
 
 interface AddressState {
