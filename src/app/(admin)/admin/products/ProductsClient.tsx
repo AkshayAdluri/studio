@@ -14,6 +14,7 @@ import { PlusCircle } from 'lucide-react';
 import { ProductsTable } from './ProductsTable';
 import { AddProductForm } from './AddProductForm';
 import { useProductStore } from '@/store/products';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function ProductsClient() {
   const { products } = useProductStore();
@@ -33,11 +34,13 @@ export default function ProductsClient() {
               Add Product
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] flex flex-col">
             <DialogHeader>
               <DialogTitle>Add New Product</DialogTitle>
             </DialogHeader>
-            <AddProductForm setDialogOpen={setIsAddDialogOpen} />
+            <ScrollArea className="flex-grow pr-6 -mr-6">
+                 <AddProductForm setDialogOpen={setIsAddDialogOpen} />
+            </ScrollArea>
           </DialogContent>
         </Dialog>
       </div>
