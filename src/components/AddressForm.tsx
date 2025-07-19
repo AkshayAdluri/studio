@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import type { Address } from "@/store/address";
+import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -26,9 +27,10 @@ const formSchema = z.object({
 interface AddressFormProps {
   onSubmit: (data: Omit<Address, 'id'>) => boolean | void;
   initialData?: Omit<Address, 'id'>;
+  isSaving?: boolean;
 }
 
-export function AddressForm({ onSubmit, initialData }: AddressFormProps) {
+export function AddressForm({ onSubmit, initialData, isSaving = false }: AddressFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData || {
@@ -105,8 +107,9 @@ export function AddressForm({ onSubmit, initialData }: AddressFormProps) {
             )}
           />
         </div>
-        <Button type="submit" className="w-full">
-          Save Address
+        <Button type="submit" className="w-full" disabled={isSaving}>
+          {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isSaving ? 'Saving...' : 'Save Address'}
         </Button>
       </form>
     </Form>

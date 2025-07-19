@@ -52,6 +52,8 @@ export function CheckoutForm() {
   const { addresses, addAddress } = useAddress();
   const [isClient, setIsClient] = useState(false);
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
+  const [isSavingAddress, setIsSavingAddress] = useState(false);
+
 
   useEffect(() => {
     setIsClient(true);
@@ -74,7 +76,10 @@ export function CheckoutForm() {
     if (user) {
       form.setValue('email', user);
     }
-  }, [user, form]);
+    if (addresses.length > 0) {
+      handleAddressSelect(addresses[0].id);
+    }
+  }, [user, addresses, form]);
 
   const handleAddressSelect = (addressId: string) => {
     const selectedAddress = addresses.find(a => a.id === addressId);
@@ -87,19 +92,30 @@ export function CheckoutForm() {
   };
 
   const handleAddNewAddress = (newAddress: Omit<Address, 'id'>) => {
-    addAddress(newAddress);
-    setIsAddressDialogOpen(false);
-    toast({
-      title: "Address added",
-      description: "Your new address has been saved and selected."
-    })
-    // Select the newly added address
-    // Note: addAddress returns the new address with an ID, but here we'll just find it.
-    // A more robust solution might have addAddress return the full new address object.
-    const addedAddress = addresses[addresses.length-1];
-    if (addedAddress) {
-        handleAddressSelect(addedAddress.id);
-    }
+    setIsSavingAddress(true);
+     // Simulate API call
+    setTimeout(() => {
+      const success = addAddress(newAddress);
+      if (success) {
+        toast({
+          title: "Address added",
+          description: "Your new address has been saved and selected."
+        });
+        const latestAddress = get().addresses[get().addresses.length - 1];
+        if (latestAddress) {
+          handleAddressSelect(latestAddress.id);
+        }
+        setIsAddressDialogOpen(false);
+      } else {
+         toast({
+          title: 'Could Not Add Address',
+          description: 'You can only have up to 5 addresses.',
+          variant: 'destructive',
+        });
+      }
+      setIsSavingAddress(false);
+    }, 500);
+    return true; // allow form reset
   }
 
   if (isClient && !user) {
@@ -191,7 +207,7 @@ export function CheckoutForm() {
                <div className="space-y-2">
                 <Label>Select Address</Label>
                 <div className="flex gap-2">
-                  <Select onValueChange={handleAddressSelect}>
+                  <Select onValueChange={handleAddressSelect} defaultValue={addresses[0]?.id}>
                     <SelectTrigger>
                       <SelectValue placeholder="Choose a saved address" />
                     </SelectTrigger>
@@ -205,7 +221,7 @@ export function CheckoutForm() {
                   </Select>
                   <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="icon">
+                      <Button variant="outline" size="icon" disabled={addresses.length >= 5}>
                         <PlusCircle className="h-4 w-4" />
                       </Button>
                     </DialogTrigger>
@@ -213,7 +229,7 @@ export function CheckoutForm() {
                       <DialogHeader>
                         <DialogTitle>Add New Address</DialogTitle>
                       </DialogHeader>
-                      <AddressForm onSubmit={handleAddNewAddress} />
+                      <AddressForm onSubmit={handleAddNewAddress} isSaving={isSavingAddress} />
                     </DialogContent>
                   </Dialog>
                 </div>
@@ -239,7 +255,7 @@ export function CheckoutForm() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="you@example.com" {...field} />
+                    <Input placeholder="you@example.com" {...field} readOnly={!!user} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -296,11 +312,8 @@ export function CheckoutForm() {
                 }
               </div>
             <Button type="submit" className="w-full" disabled={!isClient || form.formState.isSubmitting || totalPrice <= 0}>
-              {isClient ? 
-                (form.formState.isSubmitting ? 'Processing...' : `Pay $${totalPrice.toFixed(2)}`) :
-                'Loading...'
-              }
-              <ArrowRight className="ml-2 h-4 w-4" />
+              {form.formState.isSubmitting ? 'Processing...' : `Pay $${totalPrice.toFixed(2)}`}
+              {!form.formState.isSubmitting && <ArrowRight className="ml-2 h-4 w-4" />}
             </Button>
           </CardFooter>
         </form>

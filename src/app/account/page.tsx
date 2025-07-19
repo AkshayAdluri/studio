@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/store/auth';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,6 +29,9 @@ export default function AccountPage() {
   const router = useRouter();
   const { addresses, addAddress, removeAddress } = useAddress();
   const { toast } = useToast();
+  const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
 
   useEffect(() => {
     if (!user) {
@@ -37,21 +40,26 @@ export default function AccountPage() {
   }, [user, router]);
 
   const handleAddAddress = (newAddress: Omit<Address, 'id'>) => {
-    const success = addAddress(newAddress);
-    if (success) {
-      toast({
-        title: 'Address Added',
-        description: 'Your new address has been saved.',
-      });
-      return true;
-    } else {
-      toast({
-        title: 'Could Not Add Address',
-        description: 'You can only have up to 5 addresses.',
-        variant: 'destructive',
-      });
-      return false;
-    }
+    setIsSaving(true);
+    // Simulate API call
+    setTimeout(() => {
+      const success = addAddress(newAddress);
+      if (success) {
+        toast({
+          title: 'Address Added',
+          description: 'Your new address has been saved.',
+        });
+        setIsAddressDialogOpen(false);
+      } else {
+        toast({
+          title: 'Could Not Add Address',
+          description: 'You can only have up to 5 addresses.',
+          variant: 'destructive',
+        });
+      }
+      setIsSaving(false);
+    }, 500); // 500ms delay to show spinner
+    return true; // To allow form reset
   };
 
   if (!user) {
@@ -81,7 +89,7 @@ export default function AccountPage() {
             <CardTitle>Your Addresses</CardTitle>
             <CardDescription>Manage your saved shipping addresses.</CardDescription>
           </div>
-          <Dialog>
+          <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
             <DialogTrigger asChild>
               <Button disabled={addresses.length >= 5}>Add New Address</Button>
             </DialogTrigger>
@@ -89,7 +97,7 @@ export default function AccountPage() {
               <DialogHeader>
                 <DialogTitle>Add a new address</DialogTitle>
               </DialogHeader>
-              <AddressForm onSubmit={handleAddAddress} />
+              <AddressForm onSubmit={handleAddAddress} isSaving={isSaving} />
             </DialogContent>
           </Dialog>
         </CardHeader>
