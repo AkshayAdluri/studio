@@ -12,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/store/auth';
 import { useToast } from '@/hooks/use-toast';
+import { useEffect } from 'react';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -21,8 +22,14 @@ const formSchema = z.object({
 
 export default function SignupPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { user, login } = useAuth();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (user) {
+      router.push('/');
+    }
+  }, [user, router]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -41,6 +48,10 @@ export default function SignupPage() {
       description: 'You have been successfully signed up.',
     });
     router.push('/');
+  }
+
+  if (user) {
+    return null; // or a loading spinner, to avoid showing the form while redirecting
   }
 
   return (

@@ -12,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/store/auth';
 import { useToast } from '@/hooks/use-toast';
+import { useEffect } from 'react';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -20,8 +21,14 @@ const formSchema = z.object({
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { user, login } = useAuth();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (user) {
+      router.push('/');
+    }
+  }, [user, router]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -39,6 +46,10 @@ export default function LoginPage() {
       description: `Welcome back!`,
     });
     router.push('/');
+  }
+
+  if (user) {
+    return null; // or a loading spinner, to avoid showing the form while redirecting
   }
 
   return (
