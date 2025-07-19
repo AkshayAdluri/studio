@@ -18,12 +18,12 @@ export default function WishlistPage() {
   
   useEffect(() => {
     setIsClient(true);
-    if (!user) {
+    if (!user || user.role !== 'user') {
       router.push('/login');
     }
   }, [user, router]);
 
-  if (!isClient || !user) {
+  if (!isClient || !user || user.role !== 'user') {
     return (
       <div className="flex flex-col items-center justify-center text-center py-20">
         <Heart className="h-16 w-16 mb-4 text-muted-foreground" />

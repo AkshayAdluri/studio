@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingCart, Zap, Heart, User, LogOut } from 'lucide-react';
+import { ShoppingCart, Zap, Heart, User, LogOut, Shield } from 'lucide-react';
 import { SearchBar } from './SearchBar';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -34,6 +34,10 @@ export function Header() {
   const totalCartItems = getTotalCartItems();
   const totalWishlistItems = wishlistItems.length;
 
+  const getInitials = (email: string) => {
+    return email.charAt(0).toUpperCase();
+  };
+
   return (
     <header className="bg-background/80 backdrop-blur-md sticky top-0 z-40 border-b">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
@@ -48,42 +52,46 @@ export function Header() {
         </div>
         <div className="flex items-center gap-2">
            <ThemeToggle />
-           <Button variant="ghost" size="icon" asChild>
-            <Link href="/wishlist" className="relative">
-              <Heart className="h-5 w-5" />
-              {isClient && totalWishlistItems > 0 && (
-                <Badge
-                  variant="destructive"
-                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full"
-                >
-                  {totalWishlistItems}
-                </Badge>
-              )}
-              <span className="sr-only">Wishlist</span>
-            </Link>
-          </Button>
+           {user?.role !== 'owner' && (
+             <>
+                <Button variant="ghost" size="icon" asChild>
+                  <Link href="/wishlist" className="relative">
+                    <Heart className="h-5 w-5" />
+                    {isClient && totalWishlistItems > 0 && (
+                      <Badge
+                        variant="destructive"
+                        className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full"
+                      >
+                        {totalWishlistItems}
+                      </Badge>
+                    )}
+                    <span className="sr-only">Wishlist</span>
+                  </Link>
+                </Button>
 
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/cart" className="relative">
-              <ShoppingCart className="h-5 w-5" />
-              {isClient && totalCartItems > 0 && (
-                <Badge
-                  variant="destructive"
-                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full"
-                >
-                  {totalCartItems}
-                </Badge>
-              )}
-              <span className="sr-only">Shopping Cart</span>
-            </Link>
-          </Button>
+                <Button variant="ghost" size="icon" asChild>
+                  <Link href="/cart" className="relative">
+                    <ShoppingCart className="h-5 w-5" />
+                    {isClient && totalCartItems > 0 && (
+                      <Badge
+                        variant="destructive"
+                        className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full"
+                      >
+                        {totalCartItems}
+                      </Badge>
+                    )}
+                    <span className="sr-only">Shopping Cart</span>
+                  </Link>
+                </Button>
+            </>
+           )}
           
           {isClient && user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarFallback>{user.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
                   </Avatar>
                    <span className="sr-only">User Menu</span>
                 </Button>
@@ -91,10 +99,16 @@ export function Header() {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/account">Account</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem disabled>{user}</DropdownMenuItem>
+                {user.role === 'owner' ? (
+                   <DropdownMenuItem asChild>
+                    <Link href="/admin/products"><Shield className="mr-2 h-4 w-4" />Admin Panel</Link>
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem asChild>
+                    <Link href="/account">Account</Link>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem disabled>{user.email}</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout}>
                   <LogOut className="mr-2 h-4 w-4" />

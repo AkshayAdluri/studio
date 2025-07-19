@@ -65,7 +65,7 @@ export function CheckoutForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      email: user || "",
+      email: user?.email || "",
       address: "",
       city: "",
       zip: "",
@@ -74,7 +74,7 @@ export function CheckoutForm() {
 
    useEffect(() => {
     if (user) {
-      form.setValue('email', user);
+      form.setValue('email', user.email);
     }
     if (addresses.length > 0) {
       handleAddressSelect(addresses[0].id);

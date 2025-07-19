@@ -74,16 +74,18 @@ export default function ProductCard({ product }: ProductCardProps) {
               data-ai-hint={product.dataAiHint}
             />
           </div>
-          <Button
-            size="icon"
-            className={cn(
-              "absolute top-2 right-2 rounded-full h-8 w-8 bg-background/70 hover:bg-background",
-              isInWishlist ? 'text-red-500 hover:text-red-600' : 'text-foreground/70 hover:text-foreground'
-            )}
-            onClick={handleWishlistToggle}
-          >
-            <Heart className={cn("h-4 w-4", isInWishlist && "fill-current")} />
-          </Button>
+          {user?.role !== 'owner' && (
+            <Button
+              size="icon"
+              className={cn(
+                "absolute top-2 right-2 rounded-full h-8 w-8 bg-background/70 hover:bg-background",
+                isInWishlist ? 'text-red-500 hover:text-red-600' : 'text-foreground/70 hover:text-foreground'
+              )}
+              onClick={handleWishlistToggle}
+            >
+              <Heart className={cn("h-4 w-4", isInWishlist && "fill-current")} />
+            </Button>
+          )}
         </CardHeader>
         <CardContent className="p-4 flex-grow flex flex-col">
           <CardTitle className="text-base font-medium font-headline mb-1 leading-tight line-clamp-1">{product.name}</CardTitle>
@@ -91,10 +93,12 @@ export default function ProductCard({ product }: ProductCardProps) {
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between items-center gap-2">
           <p className="text-lg font-semibold text-primary">${product.price.toFixed(2)}</p>
-          <Button onClick={handleAddToCart} size="icon" className="h-8 w-8 rounded-full flex-shrink-0">
-            <PlusCircle className="h-4 w-4" />
-            <span className="sr-only">Add to Cart</span>
-          </Button>
+          {user?.role !== 'owner' && (
+            <Button onClick={handleAddToCart} size="icon" className="h-8 w-8 rounded-full flex-shrink-0">
+              <PlusCircle className="h-4 w-4" />
+              <span className="sr-only">Add to Cart</span>
+            </Button>
+          )}
         </CardFooter>
       </Card>
     </Link>

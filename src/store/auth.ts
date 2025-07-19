@@ -7,9 +7,14 @@ import { useWishlist } from './wishlist';
 import { useCart } from './cart';
 import { useAddress } from './address';
 
+export type User = {
+  email: string;
+  role: 'user' | 'owner';
+}
+
 interface AuthState {
-  user: string | null;
-  login: (email: string) => void;
+  user: User | null;
+  login: (email: string, role: 'user' | 'owner') => void;
   logout: () => void;
 }
 
@@ -17,7 +22,7 @@ export const useAuth = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
-      login: (email) => set({ user: email }),
+      login: (email, role) => set({ user: { email, role } }),
       logout: () => {
         set({ user: null });
         // Clear user-specific data on logout

@@ -1,8 +1,9 @@
 
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Package, Map, Truck, PanelLeft } from 'lucide-react';
 import {
   SidebarProvider,
@@ -16,6 +17,7 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { Zap } from 'lucide-react';
+import { useAuth } from '@/store/auth';
 
 const menuItems = [
   { href: '/admin/products', label: 'Products', icon: Package },
@@ -29,6 +31,26 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    // If there is no user, or the user is not an owner, redirect to admin login
+    if (!user || user.role !== 'owner') {
+      router.push('/admin/login');
+    }
+  }, [user, router]);
+  
+  // If we're on the login page, just render the children (the login page itself)
+  // without the admin layout shell.
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
+
+  // Render a loading state or null while we wait for the redirect to happen
+  if (!user || user.role !== 'owner') {
+    return null; // or a loading component
+  }
 
   return (
     <SidebarProvider>

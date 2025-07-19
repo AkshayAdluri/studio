@@ -55,6 +55,10 @@ export default function ProductPageClient({ product }: ProductPageClientProps) {
     }
   };
 
+  if (user?.role === 'owner') {
+    return null; // Don't show add to cart/wishlist for owners
+  }
+
   return (
     <div className="flex items-center gap-4">
       <Button onClick={() => addToCart(product)} size="lg" className="flex-grow">

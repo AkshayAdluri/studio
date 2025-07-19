@@ -36,7 +36,8 @@ export default function AccountPage() {
 
 
   useEffect(() => {
-    if (!user) {
+    // Redirect if not a regular user
+    if (!user || user.role !== 'user') {
       router.push('/login');
     }
   }, [user, router]);
@@ -87,7 +88,7 @@ export default function AccountPage() {
     return true;
   };
 
-  if (!user) {
+  if (!user || user.role !== 'user') {
     return null; // or a loading spinner
   }
 
@@ -104,7 +105,7 @@ export default function AccountPage() {
           <CardDescription>This is the email associated with your account.</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="font-semibold">{user}</p>
+          <p className="font-semibold">{user.email}</p>
         </CardContent>
       </Card>
 

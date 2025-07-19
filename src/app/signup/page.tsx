@@ -42,7 +42,7 @@ export default function SignupPage() {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     // In a real app, you'd create a new user in your database
-    login(values.email);
+    login(values.email, 'user');
     toast({
       title: 'Account Created!',
       description: 'You have been successfully signed up.',

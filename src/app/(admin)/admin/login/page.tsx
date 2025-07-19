@@ -19,15 +19,13 @@ const formSchema = z.object({
   password: z.string().min(1, { message: 'Password is required.' }),
 });
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   const router = useRouter();
   const { user, login } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (user && user.role === 'user') {
-      router.push('/');
-    } else if (user && user.role === 'owner') {
+    if (user && user.role === 'owner') {
       router.push('/admin/products');
     }
   }, [user, router]);
@@ -42,24 +40,25 @@ export default function LoginPage() {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     // In a real app, you'd validate against a backend
-    login(values.email, 'user');
+    // For now, any login is accepted as an owner
+    login(values.email, 'owner');
     toast({
-      title: 'Login Successful',
-      description: `Welcome back!`,
+      title: 'Admin Login Successful',
+      description: `Welcome back, store owner!`,
     });
-    router.push('/');
+    router.push('/admin/products');
   }
 
-  if (user) {
+  if (user && user.role === 'owner') {
     return null; // or a loading spinner, to avoid showing the form while redirecting
   }
 
   return (
-    <div className="flex justify-center items-center py-12">
+    <div className="flex justify-center items-center min-h-screen bg-muted/40">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold font-headline">Login</CardTitle>
-          <CardDescription>Enter your email below to login to your account.</CardDescription>
+          <CardTitle className="text-2xl font-bold font-headline">Store Owner Login</CardTitle>
+          <CardDescription>Enter your credentials to access the admin panel.</CardDescription>
         </CardHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -71,7 +70,7 @@ export default function LoginPage() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="m@example.com" {...field} />
+                      <Input placeholder="owner@example.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -93,18 +92,12 @@ export default function LoginPage() {
             </CardContent>
             <CardFooter className="flex-col gap-4">
               <Button type="submit" className="w-full">
-                Sign In
+                Sign In as Owner
               </Button>
-              <div className="text-center text-sm">
-                Don&apos;t have an account?{' '}
-                <Link href="/signup" className="underline">
-                  Sign up
-                </Link>
-              </div>
-               <div className="text-center text-sm mt-4">
-                Are you a store owner?{' '}
-                <Link href="/admin/login" className="underline">
-                  Sign in here
+               <div className="text-center text-sm">
+                Not a store owner?{' '}
+                <Link href="/login" className="underline">
+                  Customer Login
                 </Link>
               </div>
             </CardFooter>
