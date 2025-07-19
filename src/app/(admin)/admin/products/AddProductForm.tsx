@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -15,7 +16,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useProductStore, type Product } from '@/store/products';
+import { useProductStore } from '@/store/products';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
