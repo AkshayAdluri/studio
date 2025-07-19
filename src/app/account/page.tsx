@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AddressForm } from '@/components/AddressForm';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Pencil } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,9 +27,11 @@ import {
 export default function AccountPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const { addresses, addAddress, removeAddress } = useAddress();
+  const { addresses, addAddress, removeAddress, updateAddress } = useAddress();
   const { toast } = useToast();
-  const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
+  const [isAddAddressDialogOpen, setIsAddAddressDialogOpen] = useState(false);
+  const [isEditAddressDialogOpen, setIsEditAddressDialogOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
 
@@ -49,7 +51,7 @@ export default function AccountPage() {
           title: 'Address Added',
           description: 'Your new address has been saved.',
         });
-        setIsAddressDialogOpen(false);
+        setIsAddAddressDialogOpen(false);
       } else {
         toast({
           title: 'Could Not Add Address',
@@ -58,8 +60,31 @@ export default function AccountPage() {
         });
       }
       setIsSaving(false);
-    }, 500); // 500ms delay to show spinner
-    return true; // To allow form reset
+    }, 500);
+    return true; 
+  };
+  
+  const handleEditAddress = (address: Address) => {
+    setEditingAddress(address);
+    setIsEditAddressDialogOpen(true);
+  };
+  
+  const handleUpdateAddress = (updatedAddressData: Omit<Address, 'id'>) => {
+    if (!editingAddress) return false;
+    
+    setIsSaving(true);
+    // Simulate API call
+    setTimeout(() => {
+      updateAddress({ ...updatedAddressData, id: editingAddress.id });
+       toast({
+        title: 'Address Updated',
+        description: 'Your address has been successfully updated.',
+      });
+      setIsSaving(false);
+      setIsEditAddressDialogOpen(false);
+      setEditingAddress(null);
+    }, 500);
+    return true;
   };
 
   if (!user) {
@@ -89,7 +114,7 @@ export default function AccountPage() {
             <CardTitle>Your Addresses</CardTitle>
             <CardDescription>Manage your saved shipping addresses.</CardDescription>
           </div>
-          <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+          <Dialog open={isAddAddressDialogOpen} onOpenChange={setIsAddAddressDialogOpen}>
             <DialogTrigger asChild>
               <Button disabled={addresses.length >= 5}>Add New Address</Button>
             </DialogTrigger>
@@ -111,25 +136,30 @@ export default function AccountPage() {
                     <p className="text-sm text-muted-foreground">{address.address}</p>
                     <p className="text-sm text-muted-foreground">{address.city}, {address.zip}</p>
                   </div>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                       <Button variant="ghost" size="icon">
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                       </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone. This will permanently delete this address.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => removeAddress(address.id)}>Delete</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <div className="flex gap-1">
+                     <Button variant="ghost" size="icon" onClick={() => handleEditAddress(address)}>
+                        <Pencil className="h-4 w-4" />
+                     </Button>
+                     <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                         <Button variant="ghost" size="icon">
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                         </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete this address.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => removeAddress(address.id)}>Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
               ))}
             </div>
@@ -138,6 +168,18 @@ export default function AccountPage() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={isEditAddressDialogOpen} onOpenChange={(open) => {
+        setIsEditAddressDialogOpen(open);
+        if (!open) setEditingAddress(null);
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit address</DialogTitle>
+          </DialogHeader>
+          <AddressForm onSubmit={handleUpdateAddress} initialData={editingAddress || undefined} isSaving={isSaving} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
