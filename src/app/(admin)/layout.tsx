@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/button';
 const menuItems = [
   { href: '/admin/products', label: 'Products', icon: Package },
   { href: '/admin/store-location', label: 'Store Location', icon: Map, disabled: false },
-  { href: '/admin/delivery-zones', label: 'Delivery Zones', icon: Truck, disabled: true },
+  { href: '/admin/delivery-zones', label: 'Delivery Zones', icon: Truck, disabled: false },
 ];
 
 export default function AdminLayout({
