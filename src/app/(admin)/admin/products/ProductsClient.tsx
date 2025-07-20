@@ -56,9 +56,9 @@ export default function ProductsClient() {
             <DialogHeader>
               <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
             </DialogHeader>
-            <ScrollArea className="flex-grow pr-6 -mr-6">
-              <ProductForm setDialogOpen={setIsDialogOpen} initialData={editingProduct} />
-            </ScrollArea>
+            <div className="flex-grow relative overflow-y-auto">
+                <ProductForm setDialogOpen={setIsDialogOpen} initialData={editingProduct} />
+            </div>
           </DialogContent>
         </Dialog>
       </div>
