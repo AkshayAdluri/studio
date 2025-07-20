@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { GoogleMap, useJsApiLoader, DrawingManager } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, DrawingManager, Polygon, Circle, Polyline } from '@react-google-maps/api';
 import { useStoreLocation } from '@/store/location';
 import { useDeliveryZones, Zone } from '@/store/delivery-zones';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,18 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, Trash2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Badge } from '@/components/ui/badge';
 
 const containerStyle = {
   width: '100%',
@@ -22,16 +34,15 @@ const defaultCenter = {
   lng: -122.4194,
 };
 
-// Define the type for the libraries array
 const libraries: ("drawing")[] = ["drawing"];
 
 export default function DeliveryZonesClient() {
   const { location: storeLocation } = useStoreLocation();
-  const { zones, addZone, clearZones } = useDeliveryZones();
+  const { zones, addZone, removeZone, clearZones } = useDeliveryZones();
   const { toast } = useToast();
 
   const { isLoaded, loadError } = useJsApiLoader({
-    id: 'google-map-script-delivery',
+    id: 'google-map-script',
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
     libraries: libraries,
   });
@@ -45,7 +56,7 @@ export default function DeliveryZonesClient() {
   const onPolygonComplete = useCallback((polygon: google.maps.Polygon) => {
     const path = polygon.getPath().getArray().map(p => ({ lat: p.lat(), lng: p.lng() }));
     addZone({ type: 'polygon', path });
-    polygon.setMap(null); // Remove the drawn polygon, it will be rendered from the store
+    polygon.setMap(null); 
     toast({ title: "Area zone added" });
   }, [addZone, toast]);
 
@@ -54,7 +65,7 @@ export default function DeliveryZonesClient() {
     const radius = circle.getRadius();
     if (center) {
       addZone({ type: 'circle', center: { lat: center.lat(), lng: center.lng() }, radius });
-      circle.setMap(null); // Remove the drawn circle
+      circle.setMap(null); 
       toast({ title: "Radius zone added" });
     }
   }, [addZone, toast]);
@@ -62,14 +73,12 @@ export default function DeliveryZonesClient() {
   const onPolylineComplete = useCallback((polyline: google.maps.Polyline) => {
     const path = polyline.getPath().getArray().map(p => ({ lat: p.lat(), lng: p.lng() }));
     addZone({ type: 'polyline', path });
-    polyline.setMap(null); // Remove the drawn polyline
+    polyline.setMap(null); 
     toast({ title: "Street zone added" });
   }, [addZone, toast]);
 
   const handleSaveZones = () => {
     setIsSaving(true);
-    // In a real app, this would be an API call to save `zones`.
-    // Here we just simulate it.
     setTimeout(() => {
       toast({
         title: 'Delivery Zones Saved',
@@ -107,39 +116,59 @@ export default function DeliveryZonesClient() {
             drawingControlOptions: {
               position: window.google.maps.ControlPosition.TOP_CENTER,
               drawingModes: [
-                google.maps.drawing.OverlayType.POLYGON, // For areas
-                google.maps.drawing.OverlayType.CIRCLE, // For radius
-                google.maps.drawing.OverlayType.POLYLINE, // For streets
+                google.maps.drawing.OverlayType.POLYGON,
+                google.maps.drawing.OverlayType.CIRCLE,
+                google.maps.drawing.OverlayType.POLYLINE,
               ],
             },
             polygonOptions: {
-              fillColor: '#6e3bff',
+              fillColor: 'hsl(var(--primary))',
               fillOpacity: 0.3,
               strokeWeight: 2,
-              strokeColor: '#6e3bff',
+              strokeColor: 'hsl(var(--primary))',
               clickable: false,
               editable: false,
               zIndex: 1,
             },
             circleOptions: {
-              fillColor: '#ff5722',
+              fillColor: 'hsl(var(--accent))',
               fillOpacity: 0.3,
               strokeWeight: 2,
-              strokeColor: '#ff5722',
+              strokeColor: 'hsl(var(--accent))',
               clickable: false,
               editable: false,
               zIndex: 1,
             },
             polylineOptions: {
-                strokeColor: '#00bcd4',
+                strokeColor: 'hsl(var(--destructive))',
                 strokeWeight: 4,
             }
           }}
         />
-        {/* We would render saved zones here from the `zones` state, but let's do that next. */}
+        {zones.map(zone => {
+          if (zone.type === 'polygon') {
+            return <Polygon key={zone.id} path={zone.path} options={{ fillColor: 'hsl(var(--primary))', fillOpacity: 0.3, strokeWeight: 2, strokeColor: 'hsl(var(--primary))'}} />
+          }
+          if (zone.type === 'circle') {
+            return <Circle key={zone.id} center={zone.center} radius={zone.radius} options={{fillColor: 'hsl(var(--accent))', fillOpacity: 0.3, strokeWeight: 2, strokeColor: 'hsl(var(--accent))'}} />
+          }
+           if (zone.type === 'polyline') {
+            return <Polyline key={zone.id} path={zone.path} options={{ strokeColor: 'hsl(var(--destructive))', strokeWeight: 4 }} />
+          }
+          return null;
+        })}
       </GoogleMap>
     );
   };
+  
+  const getZoneTypeLabel = (type: Zone['type']) => {
+    switch (type) {
+      case 'polygon': return <Badge variant="default">Area</Badge>;
+      case 'circle': return <Badge variant="secondary">Radius</Badge>;
+      case 'polyline': return <Badge variant="destructive">Street</Badge>;
+      default: return null;
+    }
+  }
 
   return (
     <>
@@ -158,16 +187,64 @@ export default function DeliveryZonesClient() {
           <div className="h-[500px]">
             {renderMap()}
           </div>
-          <div>
-            <h3 className="font-medium">Current Zones: {zones.length}</h3>
-            {/* We'll list zones here later */}
-          </div>
+           <div>
+            <h3 className="font-medium mb-2">Current Zones ({zones.length})</h3>
+            {zones.length > 0 ? (
+               <ul className="space-y-2 max-h-48 overflow-y-auto border rounded-md p-2">
+                 {zones.map((zone, index) => (
+                   <li key={zone.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50">
+                     <div className='flex items-center gap-2'>
+                        {getZoneTypeLabel(zone.type)}
+                        <span>Zone #{index + 1}</span>
+                     </div>
+                      <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className='h-8 w-8 text-destructive'>
+                                <Trash2 className='h-4 w-4' />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete this zone?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete the selected zone. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => removeZone(zone.id)}>Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                   </li>
+                 ))}
+               </ul>
+            ) : (
+              <p className="text-muted-foreground text-sm">No zones defined yet. Use the map tools to add one.</p>
+            )}
+           </div>
         </CardContent>
         <CardFooter className="flex justify-end gap-2">
-            <Button onClick={handleClearAllZones} variant="destructive" disabled={zones.length === 0}>
-                <Trash2 className="mr-2" />
-                Clear All
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                 <Button variant="destructive" disabled={zones.length === 0}>
+                    <Trash2 className="mr-2" />
+                    Clear All
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Clear all zones?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete all defined delivery zones. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleClearAllZones}>Clear All</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <Button onClick={handleSaveZones} disabled={isSaving || zones.length === 0}>
                 {isSaving && <Loader2 className="mr-2 animate-spin" />}
                 Save Zones

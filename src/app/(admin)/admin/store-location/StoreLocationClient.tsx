@@ -23,12 +23,16 @@ const defaultCenter = {
   lng: -122.4194,
 };
 
+const libraries: ("places")[] = ["places"];
+
+
 export default function StoreLocationClient() {
   const { location, setLocation } = useStoreLocation();
   const { toast } = useToast();
   const { isLoaded, loadError } = useJsApiLoader({
-    id: 'google-map-script-admin',
+    id: 'google-map-script',
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    libraries,
   });
 
   const [markerPosition, setMarkerPosition] = useState(location.lat && location.lng ? { lat: location.lat, lng: location.lng } : defaultCenter);
@@ -43,6 +47,10 @@ export default function StoreLocationClient() {
   }, [location]);
 
   const geocodePosition = useCallback((pos: { lat: number, lng: number }) => {
+    if (!window.google) {
+      console.error("Google Maps JavaScript API not loaded");
+      return;
+    }
     const geocoder = new window.google.maps.Geocoder();
     geocoder.geocode({ location: pos }, (results, status) => {
       if (status === 'OK' && results && results[0]) {
