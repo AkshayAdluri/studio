@@ -141,6 +141,9 @@ export default function DeliveryZonesClient() {
             mapTypeControl: false,
             fullscreenControl: false,
             myLocationControl: true,
+            myLocationControlOptions: {
+                position: google.maps.ControlPosition.TOP_RIGHT,
+            },
           }}
         >
           {isLoaded && <DrawingManager

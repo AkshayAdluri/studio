@@ -110,6 +110,9 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
           mapTypeControl: false,
           fullscreenControl: false,
           myLocationControl: true,
+          myLocationControlOptions: {
+            position: google.maps.ControlPosition.TOP_RIGHT,
+          },
           restriction: {
             latLngBounds: {
               north: mapCenter.lat + 0.01,

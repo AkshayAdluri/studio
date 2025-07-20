@@ -140,6 +140,9 @@ export default function StoreLocationClient() {
             mapTypeControl: false,
             fullscreenControl: false,
             myLocationControl: true,
+            myLocationControlOptions: {
+              position: google.maps.ControlPosition.TOP_RIGHT,
+            },
           }}
         >
           <Marker position={markerPosition} />
