@@ -12,14 +12,47 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal } from 'lucide-react';
-import type { Product } from '@/store/products';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { useProductStore, type Product } from '@/store/products';
+import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ProductsTableProps {
   data: Product[];
+  onEdit: (product: Product) => void;
 }
 
-export function ProductsTable({ data }: ProductsTableProps) {
+export function ProductsTable({ data, onEdit }: ProductsTableProps) {
+  const { removeProduct } = useProductStore();
+  const { toast } = useToast();
+
+  const handleDelete = (product: Product) => {
+    removeProduct(product.id);
+    toast({
+      title: "Product Deleted",
+      description: `${product.name} has been removed from your store.`,
+      variant: "destructive"
+    });
+  };
+
   return (
     <div className="rounded-lg border">
       <Table>
@@ -30,7 +63,7 @@ export function ProductsTable({ data }: ProductsTableProps) {
             <TableHead>Category</TableHead>
             <TableHead>Price</TableHead>
             <TableHead>Stock</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead className="text-right w-[50px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -51,9 +84,41 @@ export function ProductsTable({ data }: ProductsTableProps) {
               <TableCell>${product.price.toFixed(2)}</TableCell>
               <TableCell>{product.stock}</TableCell>
               <TableCell className="text-right">
-                <Button variant="ghost" size="icon">
-                  <MoreHorizontal />
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => onEdit(product)}>
+                      <Pencil className="mr-2 h-4 w-4" />
+                      Edit
+                    </DropdownMenuItem>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+                            <span className="text-destructive">Delete</span>
+                         </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the product "{product.name}".
+                          </descripti>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDelete(product)}>Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}

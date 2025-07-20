@@ -12,13 +12,31 @@ import {
 } from '@/components/ui/dialog';
 import { PlusCircle } from 'lucide-react';
 import { ProductsTable } from './ProductsTable';
-import { AddProductForm } from './AddProductForm';
-import { useProductStore } from '@/store/products';
+import { ProductForm } from './ProductForm';
+import { useProductStore, type Product } from '@/store/products';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function ProductsClient() {
   const { products } = useProductStore();
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
+
+  const handleAddClick = () => {
+    setEditingProduct(undefined);
+    setIsDialogOpen(true);
+  };
+
+  const handleEditClick = (product: Product) => {
+    setEditingProduct(product);
+    setIsDialogOpen(true);
+  };
+
+  const handleDialogChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      setEditingProduct(undefined);
+    }
+  };
 
   return (
     <>
@@ -27,24 +45,24 @@ export default function ProductsClient() {
           <h1 className="text-3xl font-bold">Products</h1>
           <p className="text-muted-foreground">Manage your store's products.</p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
           <DialogTrigger asChild>
-            <Button>
+            <Button onClick={handleAddClick}>
               <PlusCircle className="mr-2" />
               Add Product
             </Button>
           </DialogTrigger>
           <DialogContent className="max-h-[90vh] flex flex-col">
             <DialogHeader>
-              <DialogTitle>Add New Product</DialogTitle>
+              <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
             </DialogHeader>
-            <ScrollArea className="flex-grow pr-6 -mr-6 overflow-auto">
-              <AddProductForm setDialogOpen={setIsAddDialogOpen} />
+            <ScrollArea className="flex-grow pr-6 -mr-6">
+              <ProductForm setDialogOpen={setIsDialogOpen} initialData={editingProduct} />
             </ScrollArea>
           </DialogContent>
         </Dialog>
       </div>
-      <ProductsTable data={products} />
+      <ProductsTable data={products} onEdit={handleEditClick} />
     </>
   );
 }

@@ -27,6 +27,8 @@ export interface Category {
 interface ProductState {
   products: Product[];
   addProduct: (product: Omit<Product, 'id'>) => void;
+  updateProduct: (product: Product) => void;
+  removeProduct: (productId: number) => void;
   getProductById: (id: number) => Product | undefined;
 }
 
@@ -37,6 +39,18 @@ export const useProductStore = create<ProductState>()(
       addProduct: (product) => {
         const newProduct = { ...product, id: nextId++ };
         set((state) => ({ products: [...state.products, newProduct] }));
+      },
+      updateProduct: (updatedProduct) => {
+         set((state) => ({
+          products: state.products.map((p) =>
+            p.id === updatedProduct.id ? updatedProduct : p
+          ),
+        }));
+      },
+      removeProduct: (productId) => {
+        set((state) => ({
+          products: state.products.filter((p) => p.id !== productId),
+        }));
       },
       getProductById: (id: number) => {
         return get().products.find(p => p.id === id);

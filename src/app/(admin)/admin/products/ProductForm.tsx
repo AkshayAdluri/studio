@@ -19,6 +19,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useProductStore } from '@/store/products';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import type { Product } from '@/store/products';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -33,18 +34,21 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-interface AddProductFormProps {
+interface ProductFormProps {
   setDialogOpen: (open: boolean) => void;
+  initialData?: Product;
 }
 
-export function AddProductForm({ setDialogOpen }: AddProductFormProps) {
-  const { addProduct } = useProductStore();
+export function ProductForm({ setDialogOpen, initialData }: ProductFormProps) {
+  const { addProduct, updateProduct } = useProductStore();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
+  
+  const isEditMode = !!initialData;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: initialData || {
       name: '',
       price: 0,
       description: '',
@@ -60,11 +64,19 @@ export function AddProductForm({ setDialogOpen }: AddProductFormProps) {
     setIsSaving(true);
     // In a real app, this would be an API call. Here we simulate it.
     setTimeout(() => {
-      addProduct(values);
-      toast({
-        title: 'Product Added',
-        description: `${values.name} has been added to your store.`,
-      });
+      if (isEditMode) {
+        updateProduct({ ...values, id: initialData.id });
+        toast({
+          title: 'Product Updated',
+          description: `${values.name} has been updated.`,
+        });
+      } else {
+        addProduct(values);
+        toast({
+          title: 'Product Added',
+          description: `${values.name} has been added to your store.`,
+        });
+      }
       setIsSaving(false);
       setDialogOpen(false);
       form.reset();
@@ -182,7 +194,7 @@ export function AddProductForm({ setDialogOpen }: AddProductFormProps) {
         />
         <Button type="submit" className="w-full" disabled={isSaving}>
           {isSaving ? <Loader2 className="mr-2 animate-spin" /> : null}
-          {isSaving ? 'Saving...' : 'Add Product'}
+          {isSaving ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Add Product')}
         </Button>
       </form>
     </Form>
