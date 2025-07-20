@@ -113,17 +113,6 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
           myLocationControlOptions: {
             position: google.maps.ControlPosition.TOP_RIGHT,
           },
-          restriction: {
-            latLngBounds: {
-              north: mapCenter.lat + 0.01,
-              south: mapCenter.lat - 0.01,
-              east: mapCenter.lng + 0.01,
-              west: mapCenter.lng - 0.01,
-            },
-            strictBounds: false,
-          },
-          minZoom: 16,
-          maxZoom: 20,
         }}
       >
         <Marker position={markerPosition} />
