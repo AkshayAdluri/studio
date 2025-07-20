@@ -35,8 +35,8 @@ export default function StoreLocationClient() {
     libraries,
   });
 
-  const [markerPosition, setMarkerPosition] = useState(location.lat && location.lng ? { lat: location.lat, lng: location.lng } : defaultCenter);
-  const [address, setAddress] = useState(location.address);
+  const [markerPosition, setMarkerPosition] = useState(defaultCenter);
+  const [address, setAddress] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   const geocodePosition = useCallback((pos: { lat: number, lng: number }) => {
@@ -58,8 +58,13 @@ export default function StoreLocationClient() {
   useEffect(() => {
     // If a location is already saved, use it.
     if (location.lat && location.lng) {
-      setMarkerPosition({ lat: location.lat, lng: location.lng });
-      setAddress(location.address);
+      const savedPos = { lat: location.lat, lng: location.lng };
+      setMarkerPosition(savedPos);
+      if(location.address) {
+        setAddress(location.address);
+      } else if (isLoaded) {
+        geocodePosition(savedPos);
+      }
     } 
     // Otherwise, try to get the user's current location.
     else if (navigator.geolocation) {
@@ -75,6 +80,7 @@ export default function StoreLocationClient() {
           }
         },
         () => {
+          setMarkerPosition(defaultCenter);
           toast({
             title: "Location Access Denied",
             description: "Falling back to default location. You can still set your location manually by clicking on the map.",
@@ -82,6 +88,8 @@ export default function StoreLocationClient() {
           });
         }
       );
+    } else {
+        setMarkerPosition(defaultCenter);
     }
   }, [location, isLoaded, geocodePosition, toast]);
 

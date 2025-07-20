@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 import { Skeleton } from './ui/skeleton';
 
@@ -16,7 +16,7 @@ const defaultCenter = {
   lng: -122.407
 };
 
-const libraries: ("places")[] = ["places"];
+const libraries: ("places" | "drawing")[] = ["places", "drawing"];
 
 interface LocationPickerProps {
   onLocationSelect: (location: { address: string, city: string, zip: string, lat: number, lng: number }) => void;
@@ -30,6 +30,26 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
   });
 
   const [markerPosition, setMarkerPosition] = useState(defaultCenter);
+  const [mapCenter, setMapCenter] = useState(defaultCenter);
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userPos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          setMapCenter(userPos);
+          setMarkerPosition(userPos);
+        },
+        () => {
+          // Fallback to default if permission is denied
+          setMapCenter(defaultCenter);
+        }
+      );
+    }
+  }, []);
 
   const handleMapClick = useCallback((event: google.maps.MapMouseEvent) => {
     if (event.latLng) {
@@ -71,7 +91,7 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
   return (
     <GoogleMap
       mapContainerStyle={containerStyle}
-      center={defaultCenter}
+      center={mapCenter}
       zoom={18}
       onClick={handleMapClick}
       mapTypeId='satellite'
@@ -82,10 +102,10 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
         zoomControl: true,
         restriction: {
           latLngBounds: {
-            north: defaultCenter.lat + 0.01,
-            south: defaultCenter.lat - 0.01,
-            east: defaultCenter.lng + 0.01,
-            west: defaultCenter.lng - 0.01,
+            north: mapCenter.lat + 0.01,
+            south: mapCenter.lat - 0.01,
+            east: mapCenter.lng + 0.01,
+            west: mapCenter.lng - 0.01,
           },
           strictBounds: false,
         },

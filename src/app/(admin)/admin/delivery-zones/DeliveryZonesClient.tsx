@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, DrawingManager, Polygon, Circle, Polyline } from '@react-google-maps/api';
 import { useStoreLocation } from '@/store/location';
 import { useDeliveryZones, Zone } from '@/store/delivery-zones';
@@ -34,7 +34,7 @@ const defaultCenter = {
   lng: -122.4194,
 };
 
-const libraries: ("drawing")[] = ["drawing"];
+const libraries: ("drawing" | "places")[] = ["drawing", "places"];
 
 export default function DeliveryZonesClient() {
   const { location: storeLocation } = useStoreLocation();
@@ -48,10 +48,30 @@ export default function DeliveryZonesClient() {
   });
 
   const [isSaving, setIsSaving] = useState(false);
+  const [mapCenter, setMapCenter] = useState(defaultCenter);
 
-  const center = useMemo(() => {
-    return storeLocation.lat && storeLocation.lng ? { lat: storeLocation.lat, lng: storeLocation.lng } : defaultCenter;
+  useEffect(() => {
+    // Prioritize saved store location
+    if (storeLocation.lat && storeLocation.lng) {
+      setMapCenter({ lat: storeLocation.lat, lng: storeLocation.lng });
+    } 
+    // Otherwise, try to get user's current location
+    else if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setMapCenter({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        () => {
+           // Fallback to default if permission is denied
+           setMapCenter(defaultCenter);
+        }
+      );
+    }
   }, [storeLocation]);
+
 
   const onPolygonComplete = useCallback((polygon: google.maps.Polygon) => {
     const path = polygon.getPath().getArray().map(p => ({ lat: p.lat(), lng: p.lng() }));
@@ -104,7 +124,7 @@ export default function DeliveryZonesClient() {
     return (
       <GoogleMap
         mapContainerStyle={containerStyle}
-        center={center}
+        center={mapCenter}
         zoom={12}
       >
         <DrawingManager
