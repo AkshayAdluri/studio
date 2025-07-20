@@ -52,13 +52,15 @@ export default function ProductsClient() {
               Add Product
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-h-[90vh] flex flex-col">
-            <DialogHeader>
+          <DialogContent className="max-h-[90vh] flex flex-col p-0">
+            <DialogHeader className="p-6 pb-0">
               <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
             </DialogHeader>
-            <div className="flex-grow relative overflow-y-auto">
+            <ScrollArea className="flex-grow">
+              <div className="p-6">
                 <ProductForm setDialogOpen={setIsDialogOpen} initialData={editingProduct} />
-            </div>
+              </div>
+            </ScrollArea>
           </DialogContent>
         </Dialog>
       </div>
