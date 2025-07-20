@@ -10,12 +10,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Crosshair } from 'lucide-react';
 
 const containerStyle = {
   width: '100%',
   height: '400px',
   borderRadius: 'var(--radius)',
+  position: 'relative' as const,
 };
 
 const defaultCenter = {
@@ -34,6 +35,7 @@ export default function StoreLocationClient() {
     libraries,
   });
 
+  const [map, setMap] = useState<google.maps.Map | null>(null);
   const [markerPosition, setMarkerPosition] = useState(defaultCenter);
   const [address, setAddress] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -55,7 +57,6 @@ export default function StoreLocationClient() {
   }, [isLoaded]);
   
   useEffect(() => {
-    // Set marker from saved location if it exists
     if (location.lat && location.lng) {
       const savedPos = { lat: location.lat, lng: location.lng };
       setMarkerPosition(savedPos);
@@ -65,7 +66,6 @@ export default function StoreLocationClient() {
         geocodePosition(savedPos);
       }
     } 
-    // Otherwise, try to get user's current location
     else if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -74,6 +74,9 @@ export default function StoreLocationClient() {
             lng: position.coords.longitude,
           };
           setMarkerPosition(userPos);
+          if (map) {
+             map.panTo(userPos);
+          }
           if (isLoaded) {
             geocodePosition(userPos);
           }
@@ -90,7 +93,7 @@ export default function StoreLocationClient() {
     } else {
         setMarkerPosition(defaultCenter);
     }
-  }, [location, isLoaded, geocodePosition, toast]);
+  }, [location, isLoaded, geocodePosition, toast, map]);
 
 
   const handleMapClick = useCallback((event: google.maps.MapMouseEvent) => {
@@ -106,7 +109,6 @@ export default function StoreLocationClient() {
   
   const handleSaveLocation = () => {
     setIsSaving(true);
-    // Simulate API call
     setTimeout(() => {
       setLocation({
         ...markerPosition,
@@ -119,20 +121,59 @@ export default function StoreLocationClient() {
       setIsSaving(false);
     }, 500);
   };
+  
+  const centerOnMyLocation = () => {
+    if (navigator.geolocation && map) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userPos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          map.panTo(userPos);
+          map.setZoom(15);
+        },
+        () => {
+          toast({
+            title: "Could not get your location",
+            description: "Please ensure location services are enabled in your browser and try again.",
+            variant: "destructive"
+          });
+        }
+      );
+    }
+  };
 
   const renderMap = () => {
     if (loadError) return <div>Error loading maps. Please check your API key and ensure billing is enabled.</div>;
     if (!isLoaded) return <Skeleton className="w-full h-[400px]" />;
 
     return (
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={markerPosition}
-        zoom={12}
-        onClick={handleMapClick}
-      >
-        <Marker position={markerPosition} />
-      </GoogleMap>
+      <div style={containerStyle}>
+        <GoogleMap
+          mapContainerStyle={{ width: '100%', height: '100%'}}
+          center={markerPosition}
+          zoom={12}
+          onClick={handleMapClick}
+          onLoad={setMap}
+          options={{
+            disableDefaultUI: true,
+            zoomControl: true,
+          }}
+        >
+          <Marker position={markerPosition} />
+        </GoogleMap>
+        <div style={{ position: 'absolute', right: 10, bottom: 10 }}>
+          <Button
+            size="icon"
+            onClick={centerOnMyLocation}
+            className="rounded-full shadow-md"
+            aria-label="Center map on my location"
+          >
+            <Crosshair className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
     );
   };
 

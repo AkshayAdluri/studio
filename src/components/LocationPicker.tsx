@@ -4,11 +4,15 @@
 import { useState, useCallback, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 import { Skeleton } from './ui/skeleton';
+import { Button } from './ui/button';
+import { Crosshair } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const containerStyle = {
   width: '100%',
   height: '100%',
   borderRadius: 'var(--radius)',
+  position: 'relative' as const,
 };
 
 const defaultCenter = {
@@ -29,8 +33,10 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
     libraries,
   });
 
+  const [map, setMap] = useState<google.maps.Map | null>(null);
   const [markerPosition, setMarkerPosition] = useState(defaultCenter);
   const [mapCenter, setMapCenter] = useState(defaultCenter);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -42,6 +48,9 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
           };
           setMapCenter(userPos);
           setMarkerPosition(userPos);
+          if (map) {
+             map.panTo(userPos);
+          }
         },
         () => {
           // Fallback to default if permission is denied
@@ -49,7 +58,7 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
         }
       );
     }
-  }, []);
+  }, [map]);
 
   const handleMapClick = useCallback((event: google.maps.MapMouseEvent) => {
     if (event.latLng) {
@@ -80,6 +89,28 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
     }
   }, [onLocationSelect]);
 
+  const centerOnMyLocation = () => {
+    if (navigator.geolocation && map) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userPos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          map.panTo(userPos);
+          map.setZoom(18);
+        },
+        () => {
+          toast({
+            title: "Could not get your location",
+            description: "Please ensure location services are enabled in your browser and try again.",
+            variant: "destructive"
+          });
+        }
+      );
+    }
+  };
+
   if (loadError) {
     return <div>Error loading maps. Please check your API key and configuration.</div>;
   }
@@ -89,31 +120,44 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
   }
 
   return (
-    <GoogleMap
-      mapContainerStyle={containerStyle}
-      center={mapCenter}
-      zoom={18}
-      onClick={handleMapClick}
-      mapTypeId='satellite'
-      options={{
-        fullscreenControl: false,
-        streetViewControl: false,
-        mapTypeControl: false,
-        zoomControl: true,
-        restriction: {
-          latLngBounds: {
-            north: mapCenter.lat + 0.01,
-            south: mapCenter.lat - 0.01,
-            east: mapCenter.lng + 0.01,
-            west: mapCenter.lng - 0.01,
+    <div style={containerStyle}>
+      <GoogleMap
+        mapContainerStyle={{ width: '100%', height: '100%'}}
+        center={mapCenter}
+        zoom={18}
+        onClick={handleMapClick}
+        mapTypeId='satellite'
+        onLoad={setMap}
+        options={{
+          fullscreenControl: false,
+          streetViewControl: false,
+          mapTypeControl: false,
+          zoomControl: true,
+          restriction: {
+            latLngBounds: {
+              north: mapCenter.lat + 0.01,
+              south: mapCenter.lat - 0.01,
+              east: mapCenter.lng + 0.01,
+              west: mapCenter.lng - 0.01,
+            },
+            strictBounds: false,
           },
-          strictBounds: false,
-        },
-        minZoom: 16,
-        maxZoom: 20,
-      }}
-    >
-      <Marker position={markerPosition} />
-    </GoogleMap>
+          minZoom: 16,
+          maxZoom: 20,
+        }}
+      >
+        <Marker position={markerPosition} />
+      </GoogleMap>
+       <div style={{ position: 'absolute', right: 10, bottom: 10 }}>
+          <Button
+            size="icon"
+            onClick={centerOnMyLocation}
+            className="rounded-full shadow-md"
+            aria-label="Center map on my location"
+          >
+            <Crosshair className="h-5 w-5" />
+          </Button>
+        </div>
+    </div>
   );
 }

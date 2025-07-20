@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, Trash2 } from 'lucide-react';
+import { Loader2, Trash2, Crosshair } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +27,7 @@ const containerStyle = {
   width: '100%',
   height: '500px',
   borderRadius: 'var(--radius)',
+  position: 'relative' as const,
 };
 
 const defaultCenter = {
@@ -47,6 +48,7 @@ export default function DeliveryZonesClient() {
     libraries: libraries,
   });
 
+  const [map, setMap] = useState<google.maps.Map | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [mapCenter, setMapCenter] = useState(defaultCenter);
 
@@ -60,10 +62,14 @@ export default function DeliveryZonesClient() {
     else if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setMapCenter({
+          const userPos = {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
-          });
+          };
+          setMapCenter(userPos);
+          if (map) {
+             map.panTo(userPos);
+          }
         },
         () => {
            // Fallback to default if permission is denied
@@ -71,7 +77,7 @@ export default function DeliveryZonesClient() {
         }
       );
     }
-  }, [storeLocation]);
+  }, [storeLocation, map]);
 
 
   const onPolygonComplete = useCallback((polygon: google.maps.Polygon) => {
@@ -118,67 +124,106 @@ export default function DeliveryZonesClient() {
     });
   };
 
+  const centerOnMyLocation = () => {
+    if (navigator.geolocation && map) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userPos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          map.panTo(userPos);
+          map.setZoom(15);
+        },
+        () => {
+          toast({
+            title: "Could not get your location",
+            description: "Please ensure location services are enabled in your browser and try again.",
+            variant: "destructive"
+          });
+        }
+      );
+    }
+  };
+
   const renderMap = () => {
     if (loadError) return <div>Error loading maps. Please check your API key.</div>;
     if (!isLoaded) return <Skeleton className="w-full h-[500px]" />;
 
     return (
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={mapCenter}
-        zoom={12}
-      >
-        <DrawingManager
-          onPolygonComplete={onPolygonComplete}
-          onCircleComplete={onCircleComplete}
-          onPolylineComplete={onPolylineComplete}
+      <div style={containerStyle}>
+        <GoogleMap
+          mapContainerStyle={{ width: '100%', height: '100%'}}
+          center={mapCenter}
+          zoom={12}
+          onLoad={setMap}
           options={{
-            drawingControl: true,
-            drawingControlOptions: {
-              position: window.google.maps.ControlPosition.TOP_CENTER,
-              drawingModes: [
-                google.maps.drawing.OverlayType.POLYGON,
-                google.maps.drawing.OverlayType.CIRCLE,
-                google.maps.drawing.OverlayType.POLYLINE,
-              ],
-            },
-            polygonOptions: {
-              fillColor: 'hsl(var(--primary))',
-              fillOpacity: 0.3,
-              strokeWeight: 2,
-              strokeColor: 'hsl(var(--primary))',
-              clickable: false,
-              editable: false,
-              zIndex: 1,
-            },
-            circleOptions: {
-              fillColor: 'hsl(var(--accent))',
-              fillOpacity: 0.3,
-              strokeWeight: 2,
-              strokeColor: 'hsl(var(--accent))',
-              clickable: false,
-              editable: false,
-              zIndex: 1,
-            },
-            polylineOptions: {
-                strokeColor: 'hsl(var(--destructive))',
-                strokeWeight: 4,
-            }
+            disableDefaultUI: true,
+            zoomControl: true,
           }}
-        />
-        {zones.map(zone => {
-          if (zone.type === 'polygon') {
-            return <Polygon key={zone.id} path={zone.path} options={{ fillColor: 'hsl(var(--primary))', fillOpacity: 0.3, strokeWeight: 2, strokeColor: 'hsl(var(--primary))'}} />
-          }
-          if (zone.type === 'circle') {
-            return <Circle key={zone.id} center={zone.center} radius={zone.radius} options={{fillColor: 'hsl(var(--accent))', fillOpacity: 0.3, strokeWeight: 2, strokeColor: 'hsl(var(--accent))'}} />
-          }
-           if (zone.type === 'polyline') {
-            return <Polyline key={zone.id} path={zone.path} options={{ strokeColor: 'hsl(var(--destructive))', strokeWeight: 4 }} />
-          }
-          return null;
-        })}
-      </GoogleMap>
+        >
+          <DrawingManager
+            onPolygonComplete={onPolygonComplete}
+            onCircleComplete={onCircleComplete}
+            onPolylineComplete={onPolylineComplete}
+            options={{
+              drawingControl: true,
+              drawingControlOptions: {
+                position: window.google.maps.ControlPosition.TOP_CENTER,
+                drawingModes: [
+                  google.maps.drawing.OverlayType.POLYGON,
+                  google.maps.drawing.OverlayType.CIRCLE,
+                  google.maps.drawing.OverlayType.POLYLINE,
+                ],
+              },
+              polygonOptions: {
+                fillColor: 'hsl(var(--primary))',
+                fillOpacity: 0.3,
+                strokeWeight: 2,
+                strokeColor: 'hsl(var(--primary))',
+                clickable: false,
+                editable: false,
+                zIndex: 1,
+              },
+              circleOptions: {
+                fillColor: 'hsl(var(--accent))',
+                fillOpacity: 0.3,
+                strokeWeight: 2,
+                strokeColor: 'hsl(var(--accent))',
+                clickable: false,
+                editable: false,
+                zIndex: 1,
+              },
+              polylineOptions: {
+                  strokeColor: 'hsl(var(--destructive))',
+                  strokeWeight: 4,
+              }
+            }}
+          />
+          {zones.map(zone => {
+            if (zone.type === 'polygon') {
+              return <Polygon key={zone.id} path={zone.path} options={{ fillColor: 'hsl(var(--primary))', fillOpacity: 0.3, strokeWeight: 2, strokeColor: 'hsl(var(--primary))'}} />
+            }
+            if (zone.type === 'circle') {
+              return <Circle key={zone.id} center={zone.center} radius={zone.radius} options={{fillColor: 'hsl(var(--accent))', fillOpacity: 0.3, strokeWeight: 2, strokeColor: 'hsl(var(--accent))'}} />
+            }
+            if (zone.type === 'polyline') {
+              return <Polyline key={zone.id} path={zone.path} options={{ strokeColor: 'hsl(var(--destructive))', strokeWeight: 4 }} />
+            }
+            return null;
+          })}
+        </GoogleMap>
+        <div style={{ position: 'absolute', right: 10, bottom: 10 }}>
+          <Button
+            size="icon"
+            onClick={centerOnMyLocation}
+            className="rounded-full shadow-md"
+            aria-label="Center map on my location"
+          >
+            <Crosshair className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
     );
   };
   
