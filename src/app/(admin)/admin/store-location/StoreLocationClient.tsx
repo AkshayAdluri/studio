@@ -25,16 +25,6 @@ const defaultCenter = {
 
 const libraries: ("drawing" | "places")[] = ["drawing", "places"];
 
-const myLocationMarkerIcon = {
-  path: 'M-10,0a10,10 0 1,0 20,0a10,10 0 1,0 -20,0',
-  fillColor: '#4285F4',
-  fillOpacity: 1,
-  strokeColor: '#FFFFFF',
-  strokeWeight: 2,
-  scale: 1,
-};
-
-
 export default function StoreLocationClient() {
   const { location, setLocation } = useStoreLocation();
   const { toast } = useToast();
@@ -47,7 +37,6 @@ export default function StoreLocationClient() {
   const [markerPosition, setMarkerPosition] = useState(defaultCenter);
   const [address, setAddress] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [myLocation, setMyLocation] = useState<google.maps.LatLngLiteral | null>(null);
 
   const geocodePosition = useCallback((pos: { lat: number, lng: number }) => {
     if (!window.google || !isLoaded) {
@@ -66,52 +55,6 @@ export default function StoreLocationClient() {
   }, [isLoaded]);
   
   useEffect(() => {
-    let watchId: number;
-
-    if (navigator.geolocation) {
-      // Get initial position
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const userPos = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-          setMyLocation(userPos);
-          // If no location is saved, use the user's location
-          if (!location.lat || !location.lng) {
-            setMarkerPosition(userPos);
-            geocodePosition(userPos);
-          }
-        },
-        () => {
-          toast({
-            title: "Location Access Denied",
-            description: "Falling back to default location. You can still set your location manually by clicking on the map.",
-            variant: "destructive"
-          });
-        }
-      );
-
-      // Watch for position changes
-      watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          const userPos = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-          setMyLocation(userPos);
-        },
-        (error) => {
-          console.error("Error watching position:", error);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0,
-        }
-      );
-    }
-
     // Set marker from saved location if it exists
     if (location.lat && location.lng) {
       const savedPos = { lat: location.lat, lng: location.lng };
@@ -121,15 +64,32 @@ export default function StoreLocationClient() {
       } else if (isLoaded) {
         geocodePosition(savedPos);
       }
+    } 
+    // Otherwise, try to get user's current location
+    else if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userPos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          setMarkerPosition(userPos);
+          if (isLoaded) {
+            geocodePosition(userPos);
+          }
+        },
+        () => {
+          toast({
+            title: "Location Access Denied",
+            description: "Falling back to default location. You can still set your location manually by clicking on the map.",
+            variant: "destructive"
+          });
+           setMarkerPosition(defaultCenter);
+        }
+      );
     } else {
         setMarkerPosition(defaultCenter);
     }
-    
-    return () => {
-      if (watchId) {
-        navigator.geolocation.clearWatch(watchId);
-      }
-    };
   }, [location, isLoaded, geocodePosition, toast]);
 
 
@@ -172,16 +132,6 @@ export default function StoreLocationClient() {
         onClick={handleMapClick}
       >
         <Marker position={markerPosition} />
-         {myLocation && (
-          <Marker
-            position={myLocation}
-            icon={{
-              ...myLocationMarkerIcon,
-              path: google.maps.SymbolPath.CIRCLE,
-            }}
-            title="Your Location"
-          />
-        )}
       </GoogleMap>
     );
   };

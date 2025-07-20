@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { GoogleMap, useJsApiLoader, DrawingManager, Polygon, Circle, Polyline, Marker } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, DrawingManager, Polygon, Circle, Polyline } from '@react-google-maps/api';
 import { useStoreLocation } from '@/store/location';
 import { useDeliveryZones, Zone } from '@/store/delivery-zones';
 import { Button } from '@/components/ui/button';
@@ -36,16 +36,6 @@ const defaultCenter = {
 
 const libraries: ("drawing" | "places")[] = ["drawing", "places"];
 
-const myLocationMarkerIcon = {
-  path: 'M-10,0a10,10 0 1,0 20,0a10,10 0 1,0 -20,0',
-  fillColor: '#4285F4',
-  fillOpacity: 1,
-  strokeColor: '#FFFFFF',
-  strokeWeight: 2,
-  scale: 1,
-};
-
-
 export default function DeliveryZonesClient() {
   const { location: storeLocation } = useStoreLocation();
   const { zones, addZone, removeZone, clearZones } = useDeliveryZones();
@@ -59,11 +49,9 @@ export default function DeliveryZonesClient() {
 
   const [isSaving, setIsSaving] = useState(false);
   const [mapCenter, setMapCenter] = useState(defaultCenter);
-  const [myLocation, setMyLocation] = useState<google.maps.LatLngLiteral | null>(null);
 
 
   useEffect(() => {
-    let watchId: number;
     // Prioritize saved store location for map center
     if (storeLocation.lat && storeLocation.lng) {
       setMapCenter({ lat: storeLocation.lat, lng: storeLocation.lng });
@@ -72,12 +60,10 @@ export default function DeliveryZonesClient() {
     else if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const userPos = {
+          setMapCenter({
             lat: position.coords.latitude,
             lng: position.coords.longitude,
-          };
-          setMapCenter(userPos);
-          setMyLocation(userPos);
+          });
         },
         () => {
            // Fallback to default if permission is denied
@@ -85,28 +71,6 @@ export default function DeliveryZonesClient() {
         }
       );
     }
-
-     if (navigator.geolocation) {
-        watchId = navigator.geolocation.watchPosition(
-            (position) => {
-            const userPos = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-            };
-            setMyLocation(userPos);
-            },
-            (error) => {
-                console.error("Error watching position:", error);
-            },
-            { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-        );
-     }
-
-    return () => {
-      if (watchId) {
-        navigator.geolocation.clearWatch(watchId);
-      }
-    };
   }, [storeLocation]);
 
 
@@ -214,16 +178,6 @@ export default function DeliveryZonesClient() {
           }
           return null;
         })}
-        {myLocation && (
-          <Marker
-            position={myLocation}
-            icon={{
-              ...myLocationMarkerIcon,
-              path: google.maps.SymbolPath.CIRCLE,
-            }}
-            title="Your Location"
-          />
-        )}
       </GoogleMap>
     );
   };

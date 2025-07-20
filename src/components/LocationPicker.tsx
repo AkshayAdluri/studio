@@ -18,16 +18,6 @@ const defaultCenter = {
 
 const libraries: ("drawing" | "places")[] = ["drawing", "places"];
 
-const myLocationMarkerIcon = {
-  path: 'M-10,0a10,10 0 1,0 20,0a10,10 0 1,0 -20,0',
-  fillColor: '#4285F4',
-  fillOpacity: 1,
-  strokeColor: '#FFFFFF',
-  strokeWeight: 2,
-  scale: 1,
-};
-
-
 interface LocationPickerProps {
   onLocationSelect: (location: { address: string, city: string, zip: string, lat: number, lng: number }) => void;
 }
@@ -41,12 +31,9 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
 
   const [markerPosition, setMarkerPosition] = useState(defaultCenter);
   const [mapCenter, setMapCenter] = useState(defaultCenter);
-  const [myLocation, setMyLocation] = useState<google.maps.LatLngLiteral | null>(null);
 
   useEffect(() => {
-    let watchId: number;
     if (navigator.geolocation) {
-      // Get initial position
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const userPos = {
@@ -55,35 +42,13 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
           };
           setMapCenter(userPos);
           setMarkerPosition(userPos);
-          setMyLocation(userPos);
         },
         () => {
           // Fallback to default if permission is denied
           setMapCenter(defaultCenter);
         }
       );
-
-       // Watch for position changes
-      watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          const userPos = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-          setMyLocation(userPos);
-        },
-        (error) => {
-          console.error("Error watching position:", error);
-        },
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-      );
     }
-
-     return () => {
-      if (watchId) {
-        navigator.geolocation.clearWatch(watchId);
-      }
-    };
   }, []);
 
   const handleMapClick = useCallback((event: google.maps.MapMouseEvent) => {
@@ -149,16 +114,6 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
       }}
     >
       <Marker position={markerPosition} />
-       {myLocation && (
-          <Marker
-            position={myLocation}
-            icon={{
-              ...myLocationMarkerIcon,
-              path: google.maps.SymbolPath.CIRCLE,
-            }}
-            title="Your Location"
-          />
-        )}
     </GoogleMap>
   );
 }
