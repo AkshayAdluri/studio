@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Crosshair } from 'lucide-react';
 
 const containerStyle = {
   width: '100%',
@@ -121,6 +121,31 @@ export default function StoreLocationClient() {
       setIsSaving(false);
     }, 500);
   };
+  
+  const handleCenterMapToUserLocation = () => {
+    if (navigator.geolocation && map) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userPos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          map.panTo(userPos);
+          map.setZoom(15);
+          setMarkerPosition(userPos);
+          geocodePosition(userPos);
+        },
+        () => {
+          toast({
+            title: "Could not get your location",
+            description: "Please ensure location services are enabled.",
+            variant: "destructive"
+          });
+        }
+      );
+    }
+  };
+
 
   const renderMap = () => {
     if (loadError) return <div>Error loading maps. Please check your API key and ensure billing is enabled.</div>;
@@ -137,6 +162,15 @@ export default function StoreLocationClient() {
         >
           <Marker position={markerPosition} />
         </GoogleMap>
+        <Button
+          variant="secondary"
+          size="icon"
+          onClick={handleCenterMapToUserLocation}
+          className="absolute bottom-4 right-4 h-10 w-10 rounded-full shadow-lg"
+          aria-label="Center map on my location"
+        >
+          <Crosshair className="h-5 w-5" />
+        </Button>
       </div>
     );
   };

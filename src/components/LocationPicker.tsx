@@ -5,6 +5,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 import { Skeleton } from './ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from './ui/button';
+import { Crosshair } from 'lucide-react';
 
 const containerStyle = {
   width: '100%',
@@ -87,6 +89,29 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
     }
   }, [onLocationSelect]);
 
+  const handleCenterMapToUserLocation = () => {
+    if (navigator.geolocation && map) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userPos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          map.panTo(userPos);
+          map.setZoom(18);
+          handleMapClick({ latLng: new google.maps.LatLng(userPos.lat, userPos.lng) } as any);
+        },
+        () => {
+          toast({
+            title: "Could not get your location",
+            description: "Please ensure location services are enabled.",
+            variant: "destructive"
+          });
+        }
+      );
+    }
+  };
+
   if (loadError) {
     return <div>Error loading maps. Please check your API key and configuration.</div>;
   }
@@ -107,6 +132,15 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
       >
         <Marker position={markerPosition} />
       </GoogleMap>
+      <Button
+          variant="secondary"
+          size="icon"
+          onClick={handleCenterMapToUserLocation}
+          className="absolute bottom-4 right-4 h-10 w-10 rounded-full shadow-lg"
+          aria-label="Center map on my location"
+        >
+          <Crosshair className="h-5 w-5" />
+        </Button>
     </div>
   );
 }
