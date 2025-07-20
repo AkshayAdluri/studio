@@ -4,7 +4,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Package, Map, Truck, PanelLeft } from 'lucide-react';
+import { Package, Map, Truck, PanelLeft, LogOut } from 'lucide-react';
 import {
   SidebarProvider,
   Sidebar,
@@ -15,9 +15,11 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarInset,
+  SidebarFooter,
 } from '@/components/ui/sidebar';
 import { Zap } from 'lucide-react';
 import { useAuth } from '@/store/auth';
+import { Button } from '@/components/ui/button';
 
 const menuItems = [
   { href: '/admin/products', label: 'Products', icon: Package },
@@ -31,7 +33,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -57,9 +59,9 @@ export default function AdminLayout({
       <div className="flex min-h-screen bg-muted/40">
         <Sidebar collapsible="icon" side="left" variant="sidebar">
           <SidebarHeader>
-             <Link href="/" className="flex items-center gap-2 font-bold text-xl px-2">
+             <Link href="/admin/products" className="flex items-center gap-2 font-bold text-xl px-2">
                 <Zap className="h-6 w-6 text-primary" />
-                <span className="group-data-[collapsible=icon]:hidden">Admin</span>
+                <span className="group-data-[collapsible=icon]:hidden">QuickBuy</span>
             </Link>
           </SidebarHeader>
           <SidebarContent>
@@ -85,13 +87,30 @@ export default function AdminLayout({
               ))}
             </SidebarMenu>
           </SidebarContent>
+          <SidebarFooter>
+             <SidebarMenu>
+                <SidebarMenuItem>
+                     <Button variant="ghost" className="w-full justify-start" onClick={logout}>
+                         <LogOut className="mr-2 h-4 w-4"/>
+                         <span className="group-data-[collapsible=icon]:hidden">Logout</span>
+                    </Button>
+                </SidebarMenuItem>
+             </SidebarMenu>
+          </SidebarFooter>
         </Sidebar>
-        <SidebarInset className="max-w-screen-2xl mx-auto p-4 md:p-6 lg:p-8">
-            <header className="flex items-center gap-4 mb-6 md:hidden">
-                 <SidebarTrigger />
-                 <h1 className="font-semibold text-lg">Admin</h1>
+        <SidebarInset className="max-w-screen-2xl mx-auto p-4 md:p-6 lg:p-8 flex-1 flex flex-col">
+            <header className="flex items-center justify-between gap-4 mb-6 md:hidden">
+                 <div className="flex items-center gap-4">
+                    <SidebarTrigger />
+                    <h1 className="font-semibold text-lg">Admin</h1>
+                 </div>
+                 <Button variant="ghost" size="icon" onClick={logout}>
+                    <LogOut className="h-4 w-4"/>
+                 </Button>
             </header>
-          {children}
+          <div className="flex-1">
+            {children}
+          </div>
         </SidebarInset>
       </div>
     </SidebarProvider>
