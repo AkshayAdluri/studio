@@ -23,7 +23,7 @@ const defaultCenter = {
   lng: -122.4194,
 };
 
-const libraries: ("places")[] = ["places"];
+const libraries: ("places" | "drawing")[] = ["places", "drawing"];
 
 
 export default function StoreLocationClient() {
@@ -39,15 +39,8 @@ export default function StoreLocationClient() {
   const [address, setAddress] = useState(location.address);
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    if (location.lat && location.lng) {
-      setMarkerPosition({ lat: location.lat, lng: location.lng });
-    }
-    setAddress(location.address);
-  }, [location]);
-
   const geocodePosition = useCallback((pos: { lat: number, lng: number }) => {
-    if (!window.google) {
+    if (!window.google || !isLoaded) {
       console.error("Google Maps JavaScript API not loaded");
       return;
     }
@@ -60,7 +53,38 @@ export default function StoreLocationClient() {
         console.error('Geocoder failed due to: ' + status);
       }
     });
-  }, []);
+  }, [isLoaded]);
+  
+  useEffect(() => {
+    // If a location is already saved, use it.
+    if (location.lat && location.lng) {
+      setMarkerPosition({ lat: location.lat, lng: location.lng });
+      setAddress(location.address);
+    } 
+    // Otherwise, try to get the user's current location.
+    else if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const newPos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          setMarkerPosition(newPos);
+          if (isLoaded) {
+            geocodePosition(newPos);
+          }
+        },
+        () => {
+          toast({
+            title: "Location Access Denied",
+            description: "Falling back to default location. You can still set your location manually by clicking on the map.",
+            variant: "destructive"
+          });
+        }
+      );
+    }
+  }, [location, isLoaded, geocodePosition, toast]);
+
 
   const handleMapClick = useCallback((event: google.maps.MapMouseEvent) => {
     if (event.latLng) {
@@ -90,7 +114,7 @@ export default function StoreLocationClient() {
   };
 
   const renderMap = () => {
-    if (loadError) return <div>Error loading maps. Please check your API key.</div>;
+    if (loadError) return <div>Error loading maps. Please check your API key and ensure billing is enabled.</div>;
     if (!isLoaded) return <Skeleton className="w-full h-[400px]" />;
 
     return (
