@@ -134,16 +134,6 @@ export default function StoreLocationClient() {
           zoom={12}
           onClick={handleMapClick}
           onLoad={setMap}
-          options={{
-            zoomControl: true,
-            streetViewControl: false,
-            mapTypeControl: false,
-            fullscreenControl: false,
-            myLocationControl: true,
-            myLocationControlOptions: {
-              position: google.maps.ControlPosition.TOP_RIGHT,
-            },
-          }}
         >
           <Marker position={markerPosition} />
         </GoogleMap>

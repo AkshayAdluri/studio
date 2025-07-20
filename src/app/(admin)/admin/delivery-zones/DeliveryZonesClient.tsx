@@ -135,16 +135,6 @@ export default function DeliveryZonesClient() {
           center={mapCenter}
           zoom={12}
           onLoad={setMap}
-          options={{
-            zoomControl: true,
-            streetViewControl: false,
-            mapTypeControl: false,
-            fullscreenControl: false,
-            myLocationControl: true,
-            myLocationControlOptions: {
-                position: google.maps.ControlPosition.TOP_RIGHT,
-            },
-          }}
         >
           {isLoaded && <DrawingManager
             onPolygonComplete={onPolygonComplete}

@@ -104,16 +104,6 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
         onClick={handleMapClick}
         mapTypeId='satellite'
         onLoad={setMap}
-        options={{
-          zoomControl: true,
-          streetViewControl: false,
-          mapTypeControl: false,
-          fullscreenControl: false,
-          myLocationControl: true,
-          myLocationControlOptions: {
-            position: google.maps.ControlPosition.TOP_RIGHT,
-          },
-        }}
       >
         <Marker position={markerPosition} />
       </GoogleMap>
