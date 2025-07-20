@@ -136,15 +136,14 @@ export default function DeliveryZonesClient() {
           zoom={12}
           onLoad={setMap}
           options={{
-            disableDefaultUI: true,
             zoomControl: true,
+            streetViewControl: false,
+            mapTypeControl: false,
+            fullscreenControl: false,
             myLocationControl: true,
-            myLocationControlOptions: {
-                position: window.google.maps.ControlPosition.BOTTOM_CENTER,
-            }
           }}
         >
-          <DrawingManager
+          {isLoaded && <DrawingManager
             onPolygonComplete={onPolygonComplete}
             onCircleComplete={onCircleComplete}
             onPolylineComplete={onPolylineComplete}
@@ -181,7 +180,7 @@ export default function DeliveryZonesClient() {
                   strokeWeight: 4,
               }
             }}
-          />
+          />}
           {zones.map(zone => {
             if (zone.type === 'polygon') {
               return <Polygon key={zone.id} path={zone.path} options={{ fillColor: 'hsl(var(--primary))', fillOpacity: 0.3, strokeWeight: 2, strokeColor: 'hsl(var(--primary))'}} />

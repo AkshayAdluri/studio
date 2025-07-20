@@ -135,12 +135,11 @@ export default function StoreLocationClient() {
           onClick={handleMapClick}
           onLoad={setMap}
           options={{
-            disableDefaultUI: true,
             zoomControl: true,
+            streetViewControl: false,
+            mapTypeControl: false,
+            fullscreenControl: false,
             myLocationControl: true,
-            myLocationControlOptions: {
-                position: window.google.maps.ControlPosition.BOTTOM_CENTER,
-            }
           }}
         >
           <Marker position={markerPosition} />

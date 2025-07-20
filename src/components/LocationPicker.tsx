@@ -105,14 +105,11 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
         mapTypeId='satellite'
         onLoad={setMap}
         options={{
-          fullscreenControl: false,
+          zoomControl: true,
           streetViewControl: false,
           mapTypeControl: false,
-          zoomControl: true,
+          fullscreenControl: false,
           myLocationControl: true,
-          myLocationControlOptions: {
-              position: window.google.maps.ControlPosition.RIGHT_BOTTOM,
-          },
           restriction: {
             latLngBounds: {
               north: mapCenter.lat + 0.01,
