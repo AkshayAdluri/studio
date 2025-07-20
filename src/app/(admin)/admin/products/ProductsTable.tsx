@@ -109,7 +109,7 @@ export function ProductsTable({ data, onEdit }: ProductsTableProps) {
                           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                           <AlertDialogDescription>
                             This action cannot be undone. This will permanently delete the product "{product.name}".
-                          </descripti>
+                          </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
