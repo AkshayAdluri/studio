@@ -2,7 +2,7 @@
 
 'use client'
 
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useProductStore } from '@/store/products';
@@ -10,9 +10,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ProductPageClient from './ProductPageClient';
 import { ChevronRight } from 'lucide-react';
 
-export default function ProductPage({ params }: { params: { id: string } }) {
+export default function ProductPage() {
+  const params = useParams();
   const getProductById = useProductStore(state => state.getProductById);
-  const productId = Number(params.id);
+  
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  const productId = Number(id);
+
   if (isNaN(productId)) {
     notFound();
   }
