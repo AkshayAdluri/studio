@@ -9,17 +9,23 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter
 } from '@/components/ui/dialog';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Loader2 } from 'lucide-react';
 import { ProductsTable } from './ProductsTable';
-import { ProductForm } from './ProductForm';
+import { ProductForm, FormValues } from './ProductForm';
 import { useProductStore, type Product } from '@/store/products';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ProductsClient() {
-  const { products } = useProductStore();
+  const { products, addProduct, updateProduct } = useProductStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
+  const { toast } = useToast();
+  const [isSaving, setIsSaving] = useState(false);
+  
+  const isEditMode = !!editingProduct;
+  const formId = "product-form";
 
   const handleAddClick = () => {
     setEditingProduct(undefined);
@@ -37,6 +43,28 @@ export default function ProductsClient() {
       setEditingProduct(undefined);
     }
   };
+
+  function handleFormSubmit(values: FormValues) {
+    setIsSaving(true);
+    // In a real app, this would be an API call. Here we simulate it.
+    setTimeout(() => {
+      if (isEditMode) {
+        updateProduct({ ...values, id: editingProduct.id });
+        toast({
+          title: 'Product Updated',
+          description: `${values.name} has been updated.`,
+        });
+      } else {
+        addProduct(values);
+        toast({
+          title: 'Product Added',
+          description: `${values.name} has been added to your store.`,
+        });
+      }
+      setIsSaving(false);
+      setIsDialogOpen(false);
+    }, 500);
+  }
 
   return (
     <>
@@ -56,11 +84,19 @@ export default function ProductsClient() {
             <DialogHeader className="p-6 pb-4 border-b">
               <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
             </DialogHeader>
-            <ScrollArea className="flex-grow">
-                <div className="p-6">
-                    <ProductForm setDialogOpen={setIsDialogOpen} initialData={editingProduct} />
-                </div>
-            </ScrollArea>
+            <div className="flex-grow overflow-y-auto p-6">
+                <ProductForm
+                  formId={formId}
+                  onSubmit={handleFormSubmit}
+                  initialData={editingProduct}
+                />
+            </div>
+            <DialogFooter className="p-6 pt-4 border-t">
+              <Button type="submit" form={formId} className="w-full" disabled={isSaving}>
+                {isSaving ? <Loader2 className="mr-2 animate-spin" /> : null}
+                {isSaving ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Add Product')}
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>

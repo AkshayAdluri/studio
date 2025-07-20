@@ -1,11 +1,9 @@
 
 'use client';
 
-import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -16,9 +14,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useProductStore } from '@/store/products';
-import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
 import type { Product } from '@/store/products';
 
 const formSchema = z.object({
@@ -32,18 +27,15 @@ const formSchema = z.object({
   dataAiHint: z.string().optional(),
 });
 
-type FormValues = z.infer<typeof formSchema>;
+export type FormValues = z.infer<typeof formSchema>;
 
 interface ProductFormProps {
-  setDialogOpen: (open: boolean) => void;
   initialData?: Product;
+  formId: string;
+  onSubmit: (values: FormValues) => void;
 }
 
-export function ProductForm({ setDialogOpen, initialData }: ProductFormProps) {
-  const { addProduct, updateProduct } = useProductStore();
-  const { toast } = useToast();
-  const [isSaving, setIsSaving] = useState(false);
-  
+export function ProductForm({ initialData, formId, onSubmit }: ProductFormProps) {
   const isEditMode = !!initialData;
 
   const form = useForm<FormValues>({
@@ -60,32 +52,13 @@ export function ProductForm({ setDialogOpen, initialData }: ProductFormProps) {
     },
   });
 
-  function handleFormSubmit(values: FormValues) {
-    setIsSaving(true);
-    // In a real app, this would be an API call. Here we simulate it.
-    setTimeout(() => {
-      if (isEditMode) {
-        updateProduct({ ...values, id: initialData.id });
-        toast({
-          title: 'Product Updated',
-          description: `${values.name} has been updated.`,
-        });
-      } else {
-        addProduct(values);
-        toast({
-          title: 'Product Added',
-          description: `${values.name} has been added to your store.`,
-        });
-      }
-      setIsSaving(false);
-      setDialogOpen(false);
-      form.reset();
-    }, 500);
-  }
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
+      <form
+        id={formId}
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-4"
+      >
         <FormField
           control={form.control}
           name="name"
@@ -192,10 +165,6 @@ export function ProductForm({ setDialogOpen, initialData }: ProductFormProps) {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full" disabled={isSaving}>
-          {isSaving ? <Loader2 className="mr-2 animate-spin" /> : null}
-          {isSaving ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Add Product')}
-        </Button>
       </form>
     </Form>
   );
