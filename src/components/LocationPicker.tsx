@@ -4,8 +4,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 import { Skeleton } from './ui/skeleton';
-import { Button } from './ui/button';
-import { Crosshair } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const containerStyle = {
@@ -89,28 +87,6 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
     }
   }, [onLocationSelect]);
 
-  const centerOnMyLocation = () => {
-    if (navigator.geolocation && map) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const userPos = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-          map.panTo(userPos);
-          map.setZoom(18);
-        },
-        () => {
-          toast({
-            title: "Could not get your location",
-            description: "Please ensure location services are enabled in your browser and try again.",
-            variant: "destructive"
-          });
-        }
-      );
-    }
-  };
-
   if (loadError) {
     return <div>Error loading maps. Please check your API key and configuration.</div>;
   }
@@ -133,6 +109,10 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
           streetViewControl: false,
           mapTypeControl: false,
           zoomControl: true,
+          myLocationControl: true,
+          myLocationControlOptions: {
+              position: window.google.maps.ControlPosition.RIGHT_BOTTOM,
+          },
           restriction: {
             latLngBounds: {
               north: mapCenter.lat + 0.01,
@@ -148,16 +128,6 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
       >
         <Marker position={markerPosition} />
       </GoogleMap>
-       <div style={{ position: 'absolute', right: 10, bottom: 10 }}>
-          <Button
-            size="icon"
-            onClick={centerOnMyLocation}
-            className="rounded-full shadow-md"
-            aria-label="Center map on my location"
-          >
-            <Crosshair className="h-5 w-5" />
-          </Button>
-        </div>
     </div>
   );
 }

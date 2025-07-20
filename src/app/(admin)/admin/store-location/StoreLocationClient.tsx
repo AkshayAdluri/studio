@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, Crosshair } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 const containerStyle = {
   width: '100%',
@@ -121,28 +121,6 @@ export default function StoreLocationClient() {
       setIsSaving(false);
     }, 500);
   };
-  
-  const centerOnMyLocation = () => {
-    if (navigator.geolocation && map) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const userPos = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-          map.panTo(userPos);
-          map.setZoom(15);
-        },
-        () => {
-          toast({
-            title: "Could not get your location",
-            description: "Please ensure location services are enabled in your browser and try again.",
-            variant: "destructive"
-          });
-        }
-      );
-    }
-  };
 
   const renderMap = () => {
     if (loadError) return <div>Error loading maps. Please check your API key and ensure billing is enabled.</div>;
@@ -159,20 +137,14 @@ export default function StoreLocationClient() {
           options={{
             disableDefaultUI: true,
             zoomControl: true,
+            myLocationControl: true,
+            myLocationControlOptions: {
+                position: window.google.maps.ControlPosition.BOTTOM_CENTER,
+            }
           }}
         >
           <Marker position={markerPosition} />
         </GoogleMap>
-        <div style={{ position: 'absolute', right: 10, bottom: 10 }}>
-          <Button
-            size="icon"
-            onClick={centerOnMyLocation}
-            className="rounded-full shadow-md"
-            aria-label="Center map on my location"
-          >
-            <Crosshair className="h-5 w-5" />
-          </Button>
-        </div>
       </div>
     );
   };

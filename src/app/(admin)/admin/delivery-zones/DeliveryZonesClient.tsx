@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, Trash2, Crosshair } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -124,28 +124,6 @@ export default function DeliveryZonesClient() {
     });
   };
 
-  const centerOnMyLocation = () => {
-    if (navigator.geolocation && map) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const userPos = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-          map.panTo(userPos);
-          map.setZoom(15);
-        },
-        () => {
-          toast({
-            title: "Could not get your location",
-            description: "Please ensure location services are enabled in your browser and try again.",
-            variant: "destructive"
-          });
-        }
-      );
-    }
-  };
-
   const renderMap = () => {
     if (loadError) return <div>Error loading maps. Please check your API key.</div>;
     if (!isLoaded) return <Skeleton className="w-full h-[500px]" />;
@@ -160,6 +138,10 @@ export default function DeliveryZonesClient() {
           options={{
             disableDefaultUI: true,
             zoomControl: true,
+            myLocationControl: true,
+            myLocationControlOptions: {
+                position: window.google.maps.ControlPosition.BOTTOM_CENTER,
+            }
           }}
         >
           <DrawingManager
@@ -213,16 +195,6 @@ export default function DeliveryZonesClient() {
             return null;
           })}
         </GoogleMap>
-        <div style={{ position: 'absolute', right: 10, bottom: 10 }}>
-          <Button
-            size="icon"
-            onClick={centerOnMyLocation}
-            className="rounded-full shadow-md"
-            aria-label="Center map on my location"
-          >
-            <Crosshair className="h-5 w-5" />
-          </Button>
-        </div>
       </div>
     );
   };
