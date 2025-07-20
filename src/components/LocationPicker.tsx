@@ -16,7 +16,7 @@ const defaultCenter = {
   lng: -122.407
 };
 
-const libraries: ("places" | "drawing")[] = ["places", "drawing"];
+const libraries: ("drawing" | "places")[] = ["drawing", "places"];
 
 interface LocationPickerProps {
   onLocationSelect: (location: { address: string, city: string, zip: string, lat: number, lng: number }) => void;

@@ -23,7 +23,7 @@ const defaultCenter = {
   lng: -122.4194,
 };
 
-const libraries: ("places" | "drawing")[] = ["places", "drawing"];
+const libraries: ("drawing" | "places")[] = ["drawing", "places"];
 
 
 export default function StoreLocationClient() {
